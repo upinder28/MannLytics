@@ -1,0 +1,180 @@
+require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
+const mongoose = require("mongoose");
+const LibraryArticle = require("../models/LibraryArticle");
+
+const CONDITIONS = [
+  {
+    title: "Depression",
+    emoji: "💙",
+    tag: "Condition",
+    crisis: false,
+    definition: "Depression is a common but serious mood disorder that causes persistent sadness, emptiness, and loss of interest. It affects emotions, thinking, motivation, and everyday functioning.",
+    overview: "Depression is more than feeling sad for a day or two. It can affect sleep, appetite, concentration, self-worth, and the ability to enjoy ordinary life. It may develop gradually or feel sudden, and it often needs active support rather than willpower alone.",
+    dailyImpact: "Daily tasks such as getting out of bed, responding to messages, studying, working, bathing, or making decisions may start to feel unusually heavy. Relationships can also suffer because the person may withdraw or feel emotionally numb.",
+    symptoms: ["Persistent sadness or empty mood lasting more than 2 weeks","Loss of interest in activities once enjoyed","Fatigue and decreased energy","Difficulty concentrating, remembering, or making decisions","Changes in appetite or weight","Sleep disturbances — sleeping too much or too little","Feelings of worthlessness or excessive guilt","Thoughts of death or suicide"],
+    feels: "It can feel like carrying a heavy weight every day. Simple tasks feel exhausting. You may feel disconnected from people around you, even when surrounded by others.",
+    coping: ["Maintain a daily routine — even small structure helps","Exercise regularly — even a 20-minute walk improves mood","Stay connected with trusted friends or family","Limit alcohol and avoid substances","Practice mindfulness or gentle breathing exercises","Write in a journal to process your thoughts"],
+    seek: "If symptoms last more than 2 weeks, interfere with daily life, or include thoughts of self-harm, please consult a mental health professional immediately.",
+  },
+  {
+    title: "Anxiety",
+    emoji: "😰",
+    tag: "Condition",
+    crisis: false,
+    definition: "Anxiety is a stress response that becomes a problem when it is excessive, persistent, and starts interfering with life. It often includes intense worry plus physical symptoms.",
+    overview: "Everyone feels anxious sometimes, but an anxiety disorder can make everyday situations feel threatening even when no immediate danger exists. The mind and body can stay in a constant state of alertness.",
+    dailyImpact: "It may affect work, sleep, social life, travel, conversations, concentration, and confidence. People often begin avoiding places or situations that trigger fear, which can gradually shrink their world.",
+    symptoms: ["Excessive worry that is hard to control","Restlessness or feeling on edge","Rapid heartbeat or shortness of breath","Sweating, trembling, or dizziness","Difficulty sleeping due to racing thoughts","Avoiding situations that trigger anxiety","Muscle tension or headaches","Irritability"],
+    feels: "Anxiety can feel like your mind is always running worst-case scenarios. Your body may feel tense even when there is no real danger. It can be exhausting to feel constantly alert.",
+    coping: ["Practice box breathing: inhale 4s, hold 4s, exhale 4s, hold 4s","Ground yourself using the 5-4-3-2-1 technique","Limit caffeine and sugar intake","Challenge anxious thoughts by asking 'Is this realistic?'","Regular physical activity reduces anxiety significantly","Reduce screen time, especially before bed"],
+    seek: "Seek help if anxiety is preventing you from working, socializing, or completing daily tasks, or if you experience panic attacks.",
+  },
+  {
+    title: "Stress",
+    emoji: "😣",
+    tag: "Emotion",
+    crisis: false,
+    definition: "Stress is the body's response to pressure, change, or challenge. It can be mental, emotional, or physical, and can build up quietly over time.",
+    overview: "Stress itself is not always harmful, but chronic stress can begin affecting the body, mood, memory, sleep, and patience. It often develops when demands keep exceeding recovery time.",
+    dailyImpact: "When stress stays high for too long, people may become reactive, forgetful, tired, unmotivated, or physically tense. It can reduce productivity while also making rest feel difficult.",
+    symptoms: ["Feeling overwhelmed or out of control","Difficulty relaxing or quieting the mind","Low energy and constant fatigue","Headaches, upset stomach, or chest pain","Procrastination or neglecting responsibilities","Increased use of alcohol, cigarettes, or food","Mood swings and irritability","Poor concentration"],
+    feels: "Stress often feels like too much to handle at once. Your mind races between tasks, deadlines, and responsibilities. Even rest can feel unproductive when you are stressed.",
+    coping: ["Break large tasks into smaller, manageable steps","Prioritize and learn to say no when overwhelmed","Take regular short breaks during work","Talk to someone you trust about what is bothering you","Spend time in nature or do something creative","Sleep 7-8 hours — sleep is the most powerful stress reliever"],
+    seek: "Seek help if stress is causing physical symptoms, affecting your relationships, or lasting for several weeks without relief.",
+  },
+  {
+    title: "Suicidal Ideation",
+    emoji: "🆘",
+    tag: "Crisis",
+    crisis: true,
+    definition: "Suicidal ideation refers to thoughts about ending one's life. It can range from fleeting thoughts to active planning and always deserves serious, immediate attention.",
+    overview: "Suicidal thoughts often grow from unbearable emotional pain, hopelessness, trauma, shame, or feeling like a burden. These thoughts are dangerous, but they are also treatable and survivable with immediate support.",
+    dailyImpact: "A person may withdraw, stop planning for the future, give things away, say goodbye indirectly, or seem suddenly calm after deep distress. Even subtle signs should be taken seriously.",
+    symptoms: ["Talking about wanting to die or to kill oneself","Looking for ways to end one's life","Talking about being a burden to others","Withdrawing from friends, family, and activities","Giving away prized possessions","Saying goodbye to people as if it were the last time","Extreme mood swings — sudden calmness after depression","Expressing feelings of hopelessness or having no reason to live"],
+    feels: "People experiencing suicidal thoughts often feel trapped, hopeless, and like a burden. The pain feels unbearable and permanent. But these feelings are temporary and treatable.",
+    coping: ["Reach out to a trusted person immediately","Do not stay alone if you feel unsafe","Move away from anything that could be used for self-harm","Focus only on getting through the next few minutes or hour","Say out loud what you are feeling to someone you trust","Seek urgent professional or emergency support right away"],
+    seek: "This is an emergency. Please seek immediate support from a trusted person, emergency service, or a qualified crisis support professional right away.",
+  },
+  {
+    title: "Sadness",
+    emoji: "😢",
+    tag: "Emotion",
+    crisis: false,
+    definition: "Sadness is a normal human emotion usually linked to loss, disappointment, hurt, or change. It is different from depression because it is often connected to a clear cause and tends to soften with time.",
+    overview: "Sadness is not a failure or weakness. It is part of emotional processing. The goal is not always to remove sadness immediately, but to understand it and move through it safely.",
+    dailyImpact: "People may cry more, feel quieter, isolate briefly, or have reduced energy and interest. They may still function, but with a noticeable emotional heaviness.",
+    symptoms: ["Feeling low, tearful, or heavy-hearted","Reduced motivation or energy","Wanting to be alone or withdraw temporarily","Replaying painful memories or events","Loss of appetite or comfort eating","Difficulty finding joy in usual activities"],
+    feels: "Sadness feels like a quiet heaviness. It often comes with a need to cry, reflect, or be alone. It is a natural response to loss, disappointment, or change.",
+    coping: ["Allow yourself to feel sad — suppressing it makes it worse","Talk to someone you trust about how you feel","Listen to music that matches or gently lifts your mood","Do something kind for yourself — rest, a warm drink, a walk","Write about what you are feeling without judgment","Give yourself time — sadness naturally passes"],
+    seek: "If sadness persists for more than 2 weeks without a clear cause, or if it is interfering with daily life, consider speaking with a counselor.",
+  },
+  {
+    title: "Anger",
+    emoji: "😠",
+    tag: "Emotion",
+    crisis: false,
+    definition: "Anger is a normal emotion that signals frustration, injustice, hurt, or threat. It becomes concerning when it is frequent, intense, or expressed destructively.",
+    overview: "Anger often sits on top of more vulnerable emotions like fear, shame, sadness, or feeling unheard. Learning to notice what anger is protecting can reduce impulsive reactions.",
+    dailyImpact: "Unmanaged anger can damage trust, communication, decision-making, and emotional safety. It may also affect sleep, blood pressure, and relationships at home or work.",
+    symptoms: ["Feeling irritated, frustrated, or furious","Increased heart rate and muscle tension","Clenching jaw or fists","Saying or doing things you later regret","Difficulty letting go of grievances","Feeling misunderstood or disrespected"],
+    feels: "Anger can feel like a surge of heat or pressure building inside. It often masks other emotions like hurt, fear, or embarrassment. It demands to be expressed but benefits from being managed.",
+    coping: ["Pause before reacting — count to 10 or leave the room","Identify the real emotion underneath the anger","Exercise to release physical tension","Write down what triggered you before responding","Practice assertive communication instead of aggression","Use deep breathing to calm your nervous system"],
+    seek: "Seek help if anger is damaging your relationships, causing you to act violently, or feels completely out of control.",
+  },
+  {
+    title: "Normal / Wellness",
+    emoji: "😊",
+    tag: "Wellness",
+    crisis: false,
+    definition: "Wellness refers to a generally stable emotional state where a person can manage everyday challenges, recover from setbacks, and stay connected with life.",
+    overview: "Mental wellness does not mean being happy all the time. It means being able to experience a full range of emotions without constantly feeling overwhelmed or stuck.",
+    dailyImpact: "People in a healthier state usually manage responsibilities more consistently, maintain relationships more easily, and recover more smoothly after stress.",
+    symptoms: ["Feeling generally content and stable","Able to manage daily responsibilities","Maintaining healthy relationships","Experiencing a range of emotions without being overwhelmed","Recovering from setbacks in a reasonable time","Feeling a sense of purpose or meaning"],
+    feels: "Wellness feels like being grounded. You can handle challenges without being overwhelmed. You feel connected to yourself and others, and life feels manageable.",
+    coping: ["Maintain your current healthy habits and routines","Continue journaling and self-reflection","Invest in relationships that support your wellbeing","Set meaningful goals and celebrate small wins","Practice gratitude — write 3 things you are thankful for daily","Keep learning about mental health to stay aware"],
+    seek: "Even when feeling well, regular mental health check-ins are valuable. Consider speaking with a counselor proactively, not just in crisis.",
+  },
+  {
+    title: "PTSD",
+    emoji: "🪖",
+    tag: "Condition",
+    crisis: false,
+    definition: "Post-traumatic stress disorder can develop after experiencing or witnessing trauma. It may involve intrusive memories, avoidance, heightened alertness, and emotional changes.",
+    overview: "PTSD is not just remembering something painful. The nervous system may continue responding as if danger is still present, even long after the event is over.",
+    dailyImpact: "Triggers such as sounds, smells, locations, or conversations may bring sudden fear, shutdown, flashbacks, or physical distress. Sleep and trust often become harder too.",
+    symptoms: ["Intrusive memories, nightmares, or flashbacks","Avoiding reminders of the trauma","Feeling constantly on guard or easily startled","Difficulty sleeping or concentrating","Emotional numbness or detachment","Irritability or angry outbursts","Guilt, shame, or blame related to the event","Strong physical reactions to reminders"],
+    feels: "PTSD can feel like the body and mind are still stuck in danger even when the event is over. Triggers can bring intense fear, panic, or emotional shutdown very quickly.",
+    coping: ["Create a safety routine for overwhelming moments","Use grounding techniques to reconnect with the present","Keep track of triggers and early warning signs","Prioritize sleep and gentle daily structure","Reach out to trauma-informed support when possible","Remind yourself that trauma reactions are real and treatable"],
+    seek: "Seek professional help if trauma symptoms are persistent, worsening, or interfering with work, relationships, sleep, or safety.",
+  },
+  {
+    title: "Bipolar Disorder",
+    emoji: "🎭",
+    tag: "Condition",
+    crisis: false,
+    definition: "Bipolar disorder is a mood condition involving episodes of depression and periods of unusually elevated, energized, or irritable mood.",
+    overview: "These mood shifts are stronger than ordinary ups and downs. They can affect sleep, judgment, spending, confidence, activity level, and safety.",
+    dailyImpact: "A person may swing between periods of high drive and reduced sleep, and periods of deep fatigue or hopelessness. This can disrupt work, relationships, and routine stability.",
+    symptoms: ["Periods of unusually high energy or agitation","Needing much less sleep without feeling tired","Racing thoughts or rapid speech","Impulsive decisions or risky behavior","Episodes of sadness, emptiness, or hopelessness","Noticeable shifts in mood, activity, or confidence","Difficulty functioning consistently over time","Changes in focus, motivation, or judgment"],
+    feels: "Bipolar disorder can feel unpredictable. At one time you may feel intensely driven, restless, or invincible, and at another deeply low, exhausted, or disconnected.",
+    coping: ["Track mood, sleep, and energy patterns regularly","Protect sleep as a priority","Reduce alcohol and drug use","Ask trusted people to help notice early changes","Maintain medication and therapy routines if prescribed","Build structured daily rhythms around meals, sleep, and activity"],
+    seek: "Seek help if mood highs or lows are affecting safety, work, money decisions, relationships, or sleep, or if symptoms are becoming more intense.",
+  },
+  {
+    title: "OCD",
+    emoji: "🔁",
+    tag: "Condition",
+    crisis: false,
+    definition: "Obsessive-compulsive disorder involves unwanted intrusive thoughts and repetitive behaviors or mental rituals done to reduce distress.",
+    overview: "OCD is not simply liking things neat or organized. It usually involves a distress cycle where intrusive thoughts create anxiety and compulsions temporarily reduce it.",
+    dailyImpact: "Rituals can consume time, increase exhaustion, create shame, and interrupt normal tasks. Reassurance-seeking and avoidance may also quietly grow over time.",
+    symptoms: ["Repeated intrusive thoughts that feel hard to dismiss","Checking, washing, counting, or arranging rituals","Fear that something bad will happen if rituals are not done","Spending significant time on compulsions","Seeking repeated reassurance","Distress when routines are interrupted","Recognizing the thoughts or behaviors feel excessive","Daily functioning affected by obsession-compulsion cycles"],
+    feels: "OCD can feel like getting trapped in a loop where anxiety rises unless a ritual is done, even when you know logically it may not make sense.",
+    coping: ["Notice and name the obsession-compulsion cycle","Delay compulsions briefly instead of aiming for perfection immediately","Reduce reassurance-seeking where possible","Track triggers and repetitive patterns","Practice tolerating uncertainty in small, safe ways","Seek evidence-based support such as ERP-informed care"],
+    seek: "Seek help if repetitive thoughts or rituals are taking significant time, causing distress, or limiting normal life activities.",
+  },
+  {
+    title: "Panic Disorder",
+    emoji: "💨",
+    tag: "Condition",
+    crisis: false,
+    definition: "Panic disorder involves repeated panic attacks and ongoing fear about having more attacks. Panic attacks can be sudden and physically intense.",
+    overview: "Panic attacks often feel catastrophic in the moment, even when there is no immediate external danger. Fear of future attacks can become almost as disabling as the attacks themselves.",
+    dailyImpact: "People may start avoiding crowds, commuting, travelling alone, exercise, or certain places where they once panicked. Life can become organized around fear prevention.",
+    symptoms: ["Sudden racing heart, chest tightness, or trembling","Shortness of breath or feeling like you cannot get enough air","Dizziness, sweating, or tingling sensations","Feeling detached, unreal, or out of control","Fear of dying, fainting, or losing control","Avoiding places or situations associated with past attacks","Persistent worry about the next attack","Major distress caused by the unpredictability of episodes"],
+    feels: "A panic attack can feel terrifying and immediate, as though something catastrophic is happening in the body. Afterwards, many people feel drained and fearful of it happening again.",
+    coping: ["Remind yourself that panic peaks and passes","Lengthen your exhale during breathing","Ground yourself using what you can see and feel","Reduce avoidance gradually with support","Keep a short panic-response plan on your phone","Limit stimulants if they worsen physical symptoms"],
+    seek: "Seek help if panic attacks are recurring, causing avoidance, or making you fear normal routines like travel, work, or being alone.",
+  },
+];
+
+async function seed() {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("✅ Connected to MongoDB");
+
+    // Only insert conditions that don't already exist (match by title)
+    let inserted = 0;
+    let skipped = 0;
+
+    for (const condition of CONDITIONS) {
+      const exists = await LibraryArticle.findOne({ title: condition.title });
+      if (exists) {
+        console.log(`⏭  Skipped (already exists): ${condition.title}`);
+        skipped++;
+      } else {
+        await LibraryArticle.create({ ...condition, addedBy: "seed" });
+        console.log(`✅ Inserted: ${condition.title}`);
+        inserted++;
+      }
+    }
+
+    console.log(`\n🎉 Done! Inserted: ${inserted}, Skipped: ${skipped}`);
+    process.exit(0);
+  } catch (err) {
+    console.error("❌ Seed failed:", err.message);
+    process.exit(1);
+  }
+}
+
+seed();
