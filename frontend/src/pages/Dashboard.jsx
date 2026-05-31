@@ -363,7 +363,7 @@ function Dashboard() {
     setTimeout(() => setCheckinFading(true), 4100);
     setTimeout(() => { setCheckinMsg(null); setCheckinFading(false); }, 4500);
     try {
-      await fetch("http://localhost:5000/api/mood-checkin", {
+      await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/mood-checkin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ emoji, label, userEmail: currentUserEmail }),

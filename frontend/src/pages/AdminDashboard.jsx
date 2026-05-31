@@ -12,8 +12,8 @@ export default function AdminDashboard() {
     const fetchData = async () => {
       try {
         const [aRes, jRes] = await Promise.all([
-          fetch("http://localhost:5000/api/admin/analytics", { headers: getAdminHeaders() }),
-          fetch("http://localhost:5000/api/admin/journals",  { headers: getAdminHeaders() }),
+          fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/admin/analytics`, { headers: getAdminHeaders() }),
+          fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/admin/journals`,  { headers: getAdminHeaders() }),
         ]);
         setAnalytics(await aRes.json());
         const j = await jRes.json();

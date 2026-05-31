@@ -27,7 +27,7 @@ export default function AdminAnalytics() {
   const [analytics, setAnalytics] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/admin/analytics", { headers: getAdminHeaders() })
+    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/admin/analytics`, { headers: getAdminHeaders() })
       .then(r => r.json()).then(setAnalytics).catch(() => {}).finally(() => setLoading(false));
   }, []);
 

@@ -50,7 +50,7 @@ export default function AppNavbar({ darkMode, toggleDarkMode, showGetStarted = f
     const msgs = [];
     msgs.push({ id: 1, text: "Hope you're doing okay. Want to share how you feel today? 🌿", link: "/dashboard" });
 
-    fetch(`http://localhost:5000/api/user/${currentUserEmail}`)
+    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/user/${currentUserEmail}`)
       .then(r => r.json())
       .then(data => {
         const notifEnabled = data.notifications ?? true;
@@ -222,7 +222,7 @@ export default function AppNavbar({ darkMode, toggleDarkMode, showGetStarted = f
                               )}
                               <p className="text-sm leading-relaxed">{n.text}</p>
                               {n.link && n.tag && (
-                                <p className="text-xs text-indigo-500 mt-1 font-semibold">Open Safe Space →</p>
+                                <p className="text-xs text-indigo-500 mt-1 font-semibold">Open Calm Corner →</p>
                               )}
                             </div>
                           </li>

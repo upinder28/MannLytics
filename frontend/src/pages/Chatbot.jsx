@@ -2,6 +2,9 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Setting from "./Setting";
 import AppNavbar from "../Components/AppNavbar";
+import logo from "../assets/logo pic.png";
+
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/api$/, "");
 
 import {
   FaRobot,
@@ -198,7 +201,7 @@ function Chatbot() {
     const loadChats = async () => {
       if (!currentUserEmail) return;
       try {
-        const res = await fetch(`http://localhost:5000/api/chats/${encodeURIComponent(currentUserEmail)}`);
+        const res = await fetch(`${API_BASE}/api/chats/${encodeURIComponent(currentUserEmail)}`);
         const data = await res.json();
         setChats(data);
       } catch {}
@@ -268,7 +271,7 @@ function Chatbot() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/chat", {
+      const res = await fetch(`${API_BASE}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -363,6 +366,10 @@ function Chatbot() {
     setDarkMode((p) => { localStorage.setItem("darkMode", String(!p)); return !p; });
   }, []);
 
+  const handleCloseMobileChats = useCallback(() => setShowMobileChats(false), []);
+  const handleCloseSettings = useCallback(() => setOpenSettings(false), []);
+  const handleCloseToast = useCallback(() => setToast(null), []);
+
   const bg = darkMode
     ? "bg-gray-900 text-white"
     : "bg-gradient-to-br from-indigo-50 via-white to-purple-50";
@@ -381,7 +388,7 @@ function Chatbot() {
       {/* ── MOBILE BOTTOM SHEET ── */}
       {showMobileChats && (
         <div className="fixed inset-0 z-40 md:hidden">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowMobileChats(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCloseMobileChats} />
           <div className={`absolute bottom-0 left-0 right-0 rounded-t-3xl shadow-2xl z-50 flex flex-col max-h-[92vh] ${darkMode ? "bg-gray-900 text-white" : "bg-white text-slate-800"}`}>
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 rounded-full bg-gray-300" />
@@ -514,7 +521,7 @@ function Chatbot() {
                             const safeId = /^[a-f\d]{24}$/i.test(chat._id) ? chat._id : null;
                             if (!safeId) return;
                             try {
-                              await fetch(`http://localhost:5000/api/chat/${safeId}`, {
+                              await fetch(`${API_BASE}/api/chat/${safeId}`, {
                                 method: "DELETE",
                                 headers: { "x-user-email": currentUserEmail || "" },
                               });
@@ -543,7 +550,7 @@ function Chatbot() {
 
         {/* Bottom branding */}
         <div className={`p-4 border-t flex flex-col items-center gap-1.5 ${darkMode ? "border-gray-700" : "border-gray-100"}`}>
-          <img src="/src/assets/logo pic.png" alt="Mannlytics" className="w-14 h-14 rounded-xl object-cover" />
+          <img src={logo} alt="Mannlytics" className="w-14 h-14 rounded-xl object-cover" />
           <p className="text-xs font-bold text-indigo-600">Mannlytics</p>
           <p className="text-[10px] text-slate-400">Your AI Companion 💙</p>
         </div>
@@ -707,15 +714,15 @@ function Chatbot() {
       {/* Settings modal */}
       {openSettings && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setOpenSettings(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCloseSettings} />
           <div className={`relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl p-6 z-50 ${darkMode ? "bg-gray-800 text-white" : "bg-white"}`}>
-            <button onClick={() => setOpenSettings(false)} className="absolute top-4 right-4 text-lg">✖</button>
+            <button onClick={handleCloseSettings} className="absolute top-4 right-4 text-lg">✖</button>
             <Setting />
           </div>
         </div>
       )}
 
-      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+      {toast && <Toast message={toast} onClose={handleCloseToast} />}
 
       <style>{`
         textarea { scrollbar-width: none; }

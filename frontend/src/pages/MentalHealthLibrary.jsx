@@ -1,15 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { jsPDF } from "jspdf";
 import AppNavbar from "../Components/AppNavbar";
 import {
-  FaArrowLeft,
-  FaArrowUp,
   FaBookOpen,
   FaBookmark,
   FaBrain,
-  FaCheckCircle,
   FaChevronDown,
   FaChevronUp,
   FaDownload,
@@ -17,16 +13,15 @@ import {
   FaFire,
   FaHeart,
   FaLeaf,
-  FaMoon,
   FaRegBookmark,
   FaSearch,
   FaSmile,
-  FaSun,
   FaTimes,
   FaBolt,
   FaWind,
   FaBalanceScale,
   FaFilter,
+  FaArrowUp,
 } from "react-icons/fa";
 
 const CONDITIONS = [
@@ -150,7 +145,7 @@ const CONDITIONS = [
     emoji: "🆘",
     icon: FaExclamationTriangle,
     color: "from-red-500 to-rose-600",
-    tag: "Crisis",
+    tag: "Condition",
     tagColor: "bg-red-100 text-red-700",
     definition:
       "Suicidal ideation refers to thoughts about ending one's life. It can range from fleeting thoughts to active planning and always deserves serious, immediate attention.",
@@ -495,15 +490,29 @@ const MYTHS_FACTS = [
   },
 ];
 
-const FILTERS = ["All", "Condition", "Emotion", "Wellness", "Crisis"];
-const SORT_OPTIONS = ["Recommended", "A-Z", "Saved First"];
+const FILTERS = ["All", "Condition", "Emotion", "Wellness"];
+const SORT_OPTIONS = ["Recommended", "A-Z"];
 const SECTION_META = {
   overview: { label: "Overview", title: "Overview" },
   impact: { label: "Daily Impact", title: "Daily Impact" },
   symptoms: { label: "Symptoms", title: "Symptoms" },
-  feels: { label: "What It Feels Like", title: "What It Feels Like" },
+  feels: { label: "Feels Like", title: "What It Feels Like" },
   coping: { label: "Coping Strategies", title: "Coping Strategies" },
   seek: { label: "When To Seek Help", title: "When To Seek Help" },
+};
+
+const SEARCH_KEYWORDS = {
+  depression: ["depression", "depressed", "sad", "sadness", "empty", "hopeless", "low", "unmotivated"],
+  anxiety: ["anxiety", "anxious", "worry", "worried", "nervous", "panic", "fear", "scared"],
+  stress: ["stress", "stressed", "overwhelmed", "pressure", "burnout", "exhausted", "tired"],
+  suicidal: ["suicidal", "suicide", "self harm", "end life", "crisis", "hopeless", "burden"],
+  sadness: ["sad", "sadness", "cry", "crying", "grief", "loss", "heartbroken", "low", "tearful"],
+  anger: ["anger", "angry", "rage", "furious", "irritated", "frustrated", "mad", "aggressive"],
+  normal: ["normal", "wellness", "healthy", "stable", "fine", "okay", "good", "well"],
+  ptsd: ["ptsd", "trauma", "traumatic", "flashback", "nightmare", "triggered"],
+  bipolar: ["bipolar", "mood swings", "manic", "mania", "highs and lows"],
+  ocd: ["ocd", "obsessive", "compulsive", "intrusive", "ritual", "repetitive"],
+  "panic-disorder": ["panic", "panic attack", "heart racing", "chest tight", "breathless", "dizzy"],
 };
 
 const slugify = (value) =>
@@ -512,86 +521,287 @@ const slugify = (value) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
+const TAG_COLORS = {
+  Condition: [99, 102, 241],
+  Emotion:   [14, 165, 233],
+  Wellness:  [34, 197, 94],
+  Crisis:    [220, 38, 38],
+};
+
+function buildStyledPdf(item, sectionKey) {
+  const pdf = new jsPDF("p", "mm", "a4");
+  const pw = pdf.internal.pageSize.width;
+  const ph = pdf.internal.pageSize.height;
+  const margin = 18;
+  const contentW = pw - margin * 2;
+  const accent = TAG_COLORS[item.tag] || [99, 102, 241];
+  let y = 0;
+
+  const checkPage = (needed = 10) => {
+    if (y + needed > ph - 16) { pdf.addPage(); addFooter(); y = 22; }
+  };
+
+  const addFooter = () => {
+    const total = pdf.internal.getNumberOfPages();
+    for (let p = 1; p <= total; p++) {
+      pdf.setPage(p);
+      pdf.setFillColor(245, 247, 255);
+      pdf.rect(0, ph - 11, pw, 11, "F");
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(150, 150, 160);
+      pdf.text("Mannlytics Mental Health Library · For personal use only", margin, ph - 4);
+      pdf.text(`Page ${p} of ${total}`, pw - margin, ph - 4, { align: "right" });
+    }
+  };
+
+  const sectionTitle = (title) => {
+    checkPage(14);
+    pdf.setFillColor(245, 247, 255);
+    pdf.roundedRect(margin, y, contentW, 10, 2, 2, "F");
+    pdf.setDrawColor(...accent);
+    pdf.setLineWidth(0.6);
+    pdf.line(margin, y, margin, y + 10);
+    pdf.setTextColor(...accent);
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "bold");
+    pdf.text(title, margin + 4, y + 7);
+    y += 14;
+    pdf.setTextColor(50, 50, 50);
+    pdf.setFont("helvetica", "normal");
+  };
+
+  const wrappedText = (text, indent = 0) => {
+    const lines = pdf.splitTextToSize(text, contentW - indent);
+    lines.forEach((line) => {
+      checkPage(7);
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(50, 50, 50);
+      pdf.text(line, margin + indent, y);
+      y += 6;
+    });
+    y += 2;
+  };
+
+  const bulletList = (items) => {
+    items.forEach((item) => {
+      checkPage(8);
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...accent);
+      pdf.text("•", margin, y);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(50, 50, 50);
+      const lines = pdf.splitTextToSize(item, contentW - 6);
+      lines.forEach((line) => {
+        checkPage(7);
+        pdf.text(line, margin + 5, y);
+        y += 6;
+      });
+      y += 1;
+    });
+    y += 2;
+  };
+
+  // ── HEADER BAND ──
+  pdf.setFillColor(...accent);
+  pdf.rect(0, 0, pw, 44, "F");
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(22);
+  pdf.setFont("helvetica", "bold");
+  pdf.text("Mannlytics", margin, 16);
+  pdf.setFontSize(10);
+  pdf.setFont("helvetica", "normal");
+  pdf.text("Mental Health Library", margin, 25);
+  pdf.text(new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }), pw - margin, 25, { align: "right" });
+
+  // tag badge
+  pdf.setFillColor(255, 255, 255, 0.2);
+  pdf.roundedRect(pw - margin - 30, 30, 30, 8, 2, 2, "F");
+  pdf.setFontSize(8);
+  pdf.setFont("helvetica", "bold");
+  pdf.setTextColor(255, 255, 255);
+  pdf.text(item.tag.toUpperCase(), pw - margin - 15, 35.5, { align: "center" });
+  y = 54;
+
+  // ── TITLE ──
+  pdf.setFontSize(20);
+  pdf.setFont("helvetica", "bold");
+  pdf.setTextColor(...accent);
+  pdf.text(`${item.label}`, margin, y);
+  y += 10;
+
+  // ── DEFINITION BOX ──
+  checkPage(20);
+  pdf.setFillColor(245, 247, 255);
+  pdf.roundedRect(margin, y, contentW, 2, 1, 1, "F");
+  const defLines = pdf.splitTextToSize(item.definition, contentW - 6);
+  const defH = defLines.length * 6 + 10;
+  pdf.setFillColor(245, 247, 255);
+  pdf.roundedRect(margin, y, contentW, defH, 3, 3, "F");
+  pdf.setDrawColor(...accent);
+  pdf.setLineWidth(0.5);
+  pdf.roundedRect(margin, y, contentW, defH, 3, 3, "S");
+  pdf.setFontSize(10);
+  pdf.setFont("helvetica", "italic");
+  pdf.setTextColor(70, 70, 80);
+  let dy = y + 7;
+  defLines.forEach((line) => { pdf.text(line, margin + 4, dy); dy += 6; });
+  y = dy + 6;
+
+  // ── SECTIONS ──
+  const write = (title, content, isList = false) => {
+    sectionTitle(title);
+    isList ? bulletList(content) : wrappedText(content);
+  };
+
+  if (!sectionKey || sectionKey === "overview") write("Overview", item.overview);
+  if (!sectionKey || sectionKey === "impact")   write("Daily Impact", item.dailyImpact);
+  if (!sectionKey || sectionKey === "symptoms") write("Symptoms", item.symptoms, true);
+  if (!sectionKey || sectionKey === "feels")    write("What It Feels Like", item.feels);
+  if (!sectionKey || sectionKey === "coping")   write("Coping Strategies", item.coping, true);
+  if (!sectionKey || sectionKey === "seek") {
+    sectionTitle("When To Seek Help");
+    checkPage(20);
+    const seekColor = item.crisis ? [220, 38, 38] : [180, 120, 0];
+    const seekBg = item.crisis ? [254, 226, 226] : [255, 251, 235];
+    const seekLines = pdf.splitTextToSize(item.seek, contentW - 8);
+    const seekH = seekLines.length * 6 + 10;
+    pdf.setFillColor(...seekBg);
+    pdf.roundedRect(margin, y, contentW, seekH, 3, 3, "F");
+    pdf.setDrawColor(...seekColor);
+    pdf.setLineWidth(0.5);
+    pdf.roundedRect(margin, y, contentW, seekH, 3, 3, "S");
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "bold");
+    pdf.setTextColor(...seekColor);
+    let sy = y + 7;
+    seekLines.forEach((line) => { pdf.text(line, margin + 4, sy); sy += 6; });
+    y = sy + 6;
+  }
+
+  // ── DISCLAIMER ──
+  checkPage(16);
+  y += 4;
+  pdf.setFillColor(248, 250, 252);
+  pdf.roundedRect(margin, y, contentW, 14, 2, 2, "F");
+  pdf.setFontSize(8);
+  pdf.setFont("helvetica", "italic");
+  pdf.setTextColor(140, 140, 150);
+  pdf.text("This article is for educational purposes only and is not a substitute for professional medical advice.", margin + 3, y + 5);
+  pdf.text("Always consult a qualified mental health professional for personal guidance.", margin + 3, y + 10);
+  y += 18;
+
+  addFooter();
+  return pdf;
+}
+
 function createPdf(title) {
   const pdf = new jsPDF("p", "mm", "a4");
   pdf.setProperties({ title });
   return pdf;
 }
 
-function addWrappedText(pdf, text, x, y, maxWidth, lineHeight = 7, fontSize = 12) {
-  pdf.setFontSize(fontSize);
-  const lines = pdf.splitTextToSize(text, maxWidth);
-  let currentY = y;
-
-  lines.forEach((line) => {
-    if (currentY > 280) {
-      pdf.addPage();
-      currentY = 20;
-    }
-    pdf.text(line, x, currentY);
-    currentY += lineHeight;
-  });
-
-  return currentY;
-}
-
-function addBulletList(pdf, items, x, y, maxWidth) {
-  let currentY = y;
-  items.forEach((item) => {
-    currentY = addWrappedText(pdf, `• ${item}`, x, currentY, maxWidth, 7, 11);
-    currentY += 1;
-  });
-  return currentY;
-}
-
-function addSectionHeading(pdf, heading, y) {
-  let currentY = y;
-  if (currentY > 270) {
-    pdf.addPage();
-    currentY = 20;
-  }
-  pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(14);
-  pdf.text(heading, 15, currentY);
-  pdf.setFont("helvetica", "normal");
-  return currentY + 8;
-}
-
 function addArticleToPdf(pdf, item, sectionKey) {
+  // legacy — kept for exportFullLibrary multi-page
+  const pw = pdf.internal.pageSize.width;
+  const ph = pdf.internal.pageSize.height;
+  const margin = 18;
+  const contentW = pw - margin * 2;
+  const accent = TAG_COLORS[item.tag] || [99, 102, 241];
   let y = 20;
 
-  pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(20);
-  pdf.text(`${item.emoji} ${item.label}`, 15, y);
-  y += 10;
-
-  pdf.setFont("helvetica", "normal");
-  pdf.setFontSize(11);
-  pdf.text(`Category: ${item.tag}`, 15, y);
-  y += 10;
-
-  y = addSectionHeading(pdf, "Definition", y);
-  y = addWrappedText(pdf, item.definition, 15, y, 180, 7, 11);
-  y += 4;
-
-  const writeSection = (title, content, isList = false) => {
-    y = addSectionHeading(pdf, title, y);
-    y = isList
-      ? addBulletList(pdf, content, 15, y, 180)
-      : addWrappedText(pdf, content, 15, y, 180, 7, 11);
-    y += 4;
+  const checkPage = (needed = 10) => {
+    if (y + needed > ph - 16) { pdf.addPage(); y = 22; }
   };
 
-  if (!sectionKey || sectionKey === "overview") writeSection("Overview", item.overview);
-  if (!sectionKey || sectionKey === "impact") writeSection("Daily Impact", item.dailyImpact);
-  if (!sectionKey || sectionKey === "symptoms") writeSection("Symptoms", item.symptoms, true);
-  if (!sectionKey || sectionKey === "feels") writeSection("What It Feels Like", item.feels);
-  if (!sectionKey || sectionKey === "coping") writeSection("Coping Strategies", item.coping, true);
-  if (!sectionKey || sectionKey === "seek") writeSection("When To Seek Help", item.seek);
+  const sectionTitle = (title) => {
+    checkPage(14);
+    pdf.setFillColor(245, 247, 255);
+    pdf.roundedRect(margin, y, contentW, 10, 2, 2, "F");
+    pdf.setDrawColor(...accent);
+    pdf.setLineWidth(0.6);
+    pdf.line(margin, y, margin, y + 10);
+    pdf.setTextColor(...accent);
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "bold");
+    pdf.text(title, margin + 4, y + 7);
+    y += 14;
+    pdf.setTextColor(50, 50, 50);
+    pdf.setFont("helvetica", "normal");
+  };
+
+  const wrappedText = (text, indent = 0) => {
+    const lines = pdf.splitTextToSize(text, contentW - indent);
+    lines.forEach((line) => {
+      checkPage(7);
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(50, 50, 50);
+      pdf.text(line, margin + indent, y);
+      y += 6;
+    });
+    y += 2;
+  };
+
+  const bulletList = (items) => {
+    items.forEach((it) => {
+      checkPage(8);
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...accent);
+      pdf.text("•", margin, y);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(50, 50, 50);
+      const lines = pdf.splitTextToSize(it, contentW - 6);
+      lines.forEach((line) => { checkPage(7); pdf.text(line, margin + 5, y); y += 6; });
+      y += 1;
+    });
+    y += 2;
+  };
+
+  // mini header
+  pdf.setFillColor(...accent);
+  pdf.rect(0, 0, pw, 14, "F");
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(9);
+  pdf.setFont("helvetica", "bold");
+  pdf.text("Mannlytics Mental Health Library", margin, 9);
+  pdf.text(item.tag.toUpperCase(), pw - margin, 9, { align: "right" });
+  y = 22;
+
+  pdf.setFontSize(18);
+  pdf.setFont("helvetica", "bold");
+  pdf.setTextColor(...accent);
+  pdf.text(item.label, margin, y);
+  y += 10;
+
+  const defLines = pdf.splitTextToSize(item.definition, contentW - 6);
+  const defH = defLines.length * 6 + 10;
+  pdf.setFillColor(245, 247, 255);
+  pdf.roundedRect(margin, y, contentW, defH, 3, 3, "F");
+  pdf.setFontSize(10);
+  pdf.setFont("helvetica", "italic");
+  pdf.setTextColor(70, 70, 80);
+  let dy = y + 7;
+  defLines.forEach((line) => { pdf.text(line, margin + 4, dy); dy += 6; });
+  y = dy + 6;
+
+  const write = (title, content, isList = false) => {
+    sectionTitle(title);
+    isList ? bulletList(content) : wrappedText(content);
+  };
+
+  if (!sectionKey || sectionKey === "overview") write("Overview", item.overview);
+  if (!sectionKey || sectionKey === "impact")   write("Daily Impact", item.dailyImpact);
+  if (!sectionKey || sectionKey === "symptoms") write("Symptoms", item.symptoms, true);
+  if (!sectionKey || sectionKey === "feels")    write("What It Feels Like", item.feels);
+  if (!sectionKey || sectionKey === "coping")   write("Coping Strategies", item.coping, true);
+  if (!sectionKey || sectionKey === "seek")     write("When To Seek Help", item.seek);
 }
 
 export default function MentalHealthLibrary() {
-  const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("darkMode") === "true");
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
@@ -601,14 +811,12 @@ export default function MentalHealthLibrary() {
   const [savedItems, setSavedItems] = useState([]);
   const [savedLoading, setSavedLoading] = useState(false);
   const token = sessionStorage.getItem("token");
-  const currentUserEmail = sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser");
   const isLoggedIn = !!token;
   const [showTop, setShowTop] = useState(false);
 
   const [breathingPhase, setBreathingPhase] = useState("Ready");
   const [breathingCycle, setBreathingCycle] = useState(0);
   const [isBreathing, setIsBreathing] = useState(false);
-  const [mythIndex, setMythIndex] = useState(0);
 
   // Sync dark mode
   useEffect(() => {
@@ -619,7 +827,7 @@ export default function MentalHealthLibrary() {
   useEffect(() => {
     if (isLoggedIn) {
       setSavedLoading(true);
-      fetch("http://localhost:5000/api/library/saved", {
+      fetch(`${import.meta.env.VITE_API_URL}/library/saved`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((r) => r.json())
@@ -689,35 +897,16 @@ export default function MentalHealthLibrary() {
     const term = search.trim().toLowerCase();
 
     let result = CONDITIONS.filter((item) => {
-      const content = [
-        item.label,
-        item.tag,
-        item.definition,
-        item.overview,
-        item.dailyImpact,
-        item.feels,
-        item.seek,
-        ...item.symptoms,
-        ...item.coping,
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      const matchSearch = !term || content.includes(term);
+      const keywords = SEARCH_KEYWORDS[item.id] || [];
+      const labelMatch = item.label.toLowerCase().includes(term);
+      const keywordMatch = keywords.some((kw) => kw.includes(term) || term.includes(kw));
+      const matchSearch = !term || labelMatch || keywordMatch;
       const matchFilter = activeFilter === "All" || item.tag === activeFilter;
       return matchSearch && matchFilter;
     });
 
     if (sortBy === "A-Z") {
       result = [...result].sort((a, b) => a.label.localeCompare(b.label));
-    }
-
-    if (sortBy === "Saved First") {
-      result = [...result].sort((a, b) => {
-        const aSaved = savedItems.includes(a.id) ? 1 : 0;
-        const bSaved = savedItems.includes(b.id) ? 1 : 0;
-        return bSaved - aSaved;
-      });
     }
 
     if (sortBy === "Recommended") {
@@ -728,7 +917,6 @@ export default function MentalHealthLibrary() {
     return result;
   }, [search, activeFilter, sortBy, savedItems]);
 
-  const featuredTip = TIPS[new Date().getDate() % TIPS.length];
   const getActiveSection = (id) => activeSectionById[id] || "overview";
 
   const setActiveSection = (id, section) => {
@@ -742,7 +930,7 @@ export default function MentalHealthLibrary() {
         prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
       );
       try {
-        await fetch("http://localhost:5000/api/library/saved/toggle", {
+        await fetch(`${import.meta.env.VITE_API_URL}/library/saved/toggle`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -786,15 +974,8 @@ export default function MentalHealthLibrary() {
   };
 
   const exportFullArticle = (item) => {
-    const pdf = createPdf(item.label);
-    addArticleToPdf(pdf, item);
+    const pdf = buildStyledPdf(item);
     pdf.save(`${slugify(item.label)}-article.pdf`);
-  };
-
-  const exportArticleSection = (item, sectionKey) => {
-    const pdf = createPdf(`${item.label} ${SECTION_META[sectionKey].title}`);
-    addArticleToPdf(pdf, item, sectionKey);
-    pdf.save(`${slugify(item.label)}-${slugify(SECTION_META[sectionKey].title)}.pdf`);
   };
 
   const bg = darkMode
@@ -815,50 +996,6 @@ export default function MentalHealthLibrary() {
 
       <div className="px-3 pb-16 pt-28 sm:px-5 lg:px-6 2xl:px-10">
         <div className="w-full">
-          <motion.div
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="mb-6 flex flex-wrap items-center justify-between gap-3"
-          >
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                  darkMode
-                    ? "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                <FaArrowLeft className="text-xs" />
-                Back
-              </button>
-
-              <button
-                type="button"
-                onClick={toggleDarkMode}
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                  darkMode
-                    ? "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                {darkMode ? <FaSun className="text-amber-400" /> : <FaMoon className="text-slate-700" />}
-                {darkMode ? "Light Mode" : "Dark Mode"}
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={exportFullLibrary}
-              className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
-            >
-              <FaDownload className="text-xs" />
-              Export Full Library PDF
-            </button>
-          </motion.div>
-
           <motion.section
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
@@ -866,16 +1003,9 @@ export default function MentalHealthLibrary() {
             className={`relative overflow-hidden rounded-[32px] border p-6 md:p-8 xl:p-10 ${panel}`}
           >
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(14,165,233,0.16),_transparent_26%),radial-gradient(circle_at_bottom_left,_rgba(99,102,241,0.16),_transparent_30%)]" />
-            <div className="relative grid gap-8 xl:grid-cols-[1.45fr_0.8fr]">
+            <div className="relative grid gap-8 xl:grid-cols-[1.45fr_0.8fr] items-start">
               <div>
-                <div className="mb-4 flex flex-wrap gap-3">
-                  <span className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-indigo-700">
-                    📚 Mental Health Library
-                  </span>
-                  <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold ${darkMode ? "bg-slate-800 text-slate-300" : "bg-slate-100 text-slate-600"}`}>
-                    {CONDITIONS.length} topics · Free to read
-                  </span>
-                </div>
+
 
                 <h1 className={`max-w-5xl text-4xl font-black leading-tight md:text-5xl 2xl:text-6xl ${heading}`}>
                   What are you{" "}
@@ -886,42 +1016,44 @@ export default function MentalHealthLibrary() {
                 </h1>
 
                 <p className={`mt-5 max-w-3xl text-base leading-8 md:text-lg ${muted}`}>
-                  This library covers 11 mental health topics — from everyday emotions to clinical conditions. Read symptoms, lived experiences, coping strategies, and know when to seek help.
+                  This library covers {CONDITIONS.length} mental health topics — from everyday emotions to clinical conditions. Read symptoms, lived experiences, coping strategies, and know when to seek help.
                 </p>
 
-                <div className="mt-6 flex flex-wrap gap-3">
-                  {["😔 Feeling low?", "😰 Feeling anxious?", "😣 Stressed out?", "🆘 In crisis?"].map((label, i) => {
-                    const targets = ["depression", "anxiety", "stress", "suicidal"];
-                    return (
-                      <motion.button
-                        key={i}
-                        whileHover={{ y: -2, scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        type="button"
-                        onClick={() => {
-                          setExpanded(targets[i]);
-                          setActiveSection(targets[i], "overview");
-                          setTimeout(() => {
-                            document.getElementById(`condition-${targets[i]}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
-                          }, 100);
-                        }}
-                        className={`rounded-full px-5 py-2.5 text-sm font-bold transition ${
-                          darkMode
-                            ? "border border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"
-                            : "border border-slate-200 bg-white text-slate-700 shadow-sm hover:shadow-md hover:bg-slate-50"
-                        }`}
-                      >
-                        {label}
-                      </motion.button>
-                    );
-                  })}
-                </div>
+
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
+              <div className="space-y-8">
+              <div className="flex gap-10 mb-4 justify-start pl-24">
                 <TopStat icon={FaBookOpen} label="Topics" value={CONDITIONS.length} darkMode={darkMode} />
                 <TopStat icon={FaLeaf} label="Saved" value={savedItems.length} darkMode={darkMode} />
-                <TopStat icon={FaCheckCircle} label="Categories" value={FILTERS.length - 1} darkMode={darkMode} />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {["😔 Feeling low?", "😰 Feeling anxious?", "😣 Stressed out?", "🆘 In crisis?"].map((label, i) => {
+                  const targets = ["depression", "anxiety", "stress", "suicidal"];
+                  return (
+                    <motion.button
+                      key={i}
+                      whileHover={{ y: -2, scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      type="button"
+                      onClick={() => {
+                        setExpanded(targets[i]);
+                        setActiveSection(targets[i], "overview");
+                        setTimeout(() => {
+                          document.getElementById(`condition-${targets[i]}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }, 100);
+                      }}
+                      className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                        darkMode
+                          ? "border border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"
+                          : "border border-slate-200 bg-white text-slate-700 shadow-sm hover:shadow-md hover:bg-slate-50"
+                      }`}
+                    >
+                      {label}
+                    </motion.button>
+                  );
+                })}
+              </div>
               </div>
             </div>
           </motion.section>
@@ -994,35 +1126,27 @@ export default function MentalHealthLibrary() {
 
                 <div className="mt-5">
                   <p className={`mb-3 text-xs font-bold uppercase tracking-[0.18em] ${muted}`}>Sort</p>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className={`w-full rounded-2xl border px-4 py-3 text-sm font-semibold outline-none ${
-                      darkMode
-                        ? "border-slate-700 bg-slate-950 text-white"
-                        : "border-slate-200 bg-white text-slate-700"
-                    }`}
-                  >
+                  <div className="flex flex-wrap gap-2">
                     {SORT_OPTIONS.map((option) => (
-                      <option key={option} value={option}>
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => setSortBy(option)}
+                        className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                          sortBy === option
+                            ? "bg-indigo-600 text-white"
+                            : darkMode
+                            ? "border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
+                            : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
                         {option}
-                      </option>
+                      </button>
                     ))}
-                  </select>
+                  </div>
+                  <p className={`mt-3 text-xs ${muted}`}>{filtered.length} result{filtered.length !== 1 ? "s" : ""}</p>
                 </div>
 
-                <div className={`mt-5 rounded-2xl border px-4 py-3 text-sm ${darkMode ? "border-slate-700 bg-slate-950 text-slate-300" : "border-slate-200 bg-slate-50 text-slate-600"}`}>
-                  {filtered.length} result{filtered.length !== 1 ? "s" : ""}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={exportFullLibrary}
-                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-indigo-700"
-                >
-                  <FaDownload className="text-xs" />
-                  Export Full Library
-                </button>
               </div>
             </motion.aside>
 
@@ -1033,9 +1157,19 @@ export default function MentalHealthLibrary() {
                 transition={{ duration: 0.5 }}
                 className="mb-8"
               >
-                <div className="mb-5">
-                  <h2 className={`text-2xl font-black ${heading}`}>Quick Mental Health Tips</h2>
-                  <p className={`mt-1 text-sm ${muted}`}>Small daily actions that support emotional balance.</p>
+                <div className="mb-5 flex items-center justify-between gap-4">
+                  <div>
+                    <h2 className={`text-2xl font-black ${heading}`}>Quick Mental Health Tips</h2>
+                    <p className={`mt-1 text-sm ${muted}`}>Small daily actions that support emotional balance.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={exportFullLibrary}
+                    className="inline-flex shrink-0 items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-indigo-700"
+                  >
+                    <FaDownload className="text-xs" />
+                    Export Library
+                  </button>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
@@ -1115,19 +1249,6 @@ export default function MentalHealthLibrary() {
                           <div className="flex flex-wrap gap-2 2xl:max-w-[430px] 2xl:justify-end">
                             <button
                               type="button"
-                              onClick={() => exportFullArticle(item)}
-                              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition ${
-                                darkMode
-                                  ? "border border-slate-700 bg-slate-950 text-slate-200 hover:bg-slate-800"
-                                  : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                              }`}
-                            >
-                              <FaDownload className="text-xs" />
-                              Export Full Article
-                            </button>
-
-                            <button
-                              type="button"
                               onClick={() => toggleSaved(item.id)}
                               className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition ${
                                 darkMode
@@ -1170,41 +1291,28 @@ export default function MentalHealthLibrary() {
                               className="overflow-hidden"
                             >
                               <div className={`mt-6 border-t pt-6 ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
-                                <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                                  <div className="flex flex-wrap gap-2">
-                                    {Object.entries(SECTION_META).map(([key, meta]) => (
-                                      <motion.button
-                                        whileTap={{ scale: 0.98 }}
-                                        key={key}
-                                        type="button"
-                                        onClick={() => setActiveSection(item.id, key)}
-                                        className={`rounded-full px-4 py-2 text-xs font-bold transition ${
-                                          activeSection === key
-                                            ? "bg-indigo-600 text-white"
-                                            : darkMode
-                                            ? "border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
-                                            : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                                        }`}
-                                      >
-                                        {meta.label}
-                                      </motion.button>
-                                    ))}
-                                  </div>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => exportArticleSection(item, activeSection)}
-                                    className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition ${
-                                      darkMode
-                                        ? "border border-slate-700 bg-slate-950 text-slate-200 hover:bg-slate-800"
-                                        : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                                    }`}
-                                  >
-                                    <FaDownload className="text-xs" />
-                                    Export This Section
-                                  </button>
+                                {/* Section Tabs */}
+                                <div className="flex flex-wrap gap-2">
+                                  {Object.entries(SECTION_META).map(([key, meta]) => (
+                                    <motion.button
+                                      whileTap={{ scale: 0.98 }}
+                                      key={key}
+                                      type="button"
+                                      onClick={() => setActiveSection(item.id, key)}
+                                      className={`rounded-full px-4 py-2 text-xs font-bold transition border ${
+                                        activeSection === key
+                                          ? `bg-gradient-to-br ${item.color} text-white border-transparent shadow-md`
+                                          : darkMode
+                                          ? "border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
+                                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                                      }`}
+                                    >
+                                      {meta.label}
+                                    </motion.button>
+                                  ))}
                                 </div>
 
+                                {/* Section Content */}
                                 <div className="mt-5">
                                   <AnimatePresence mode="wait">
                                     <motion.div
@@ -1214,30 +1322,49 @@ export default function MentalHealthLibrary() {
                                       exit={{ opacity: 0, y: -8 }}
                                       transition={{ duration: 0.2 }}
                                     >
+                                      <div className={`mb-4 flex items-center justify-between`}>
+                                        <p className={`text-xs font-bold uppercase tracking-[0.18em] ${muted}`}>
+                                          {SECTION_META[activeSection]?.title}
+                                        </p>
+                                        <button
+                                          type="button"
+                                          onClick={() => exportFullArticle(item)}
+                                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                                            darkMode
+                                              ? "border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
+                                              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                                          }`}
+                                        >
+                                          <FaDownload className="text-[10px]" />
+                                          Full Article
+                                        </button>
+                                      </div>
                                       {activeSection === "overview" && (
                                         <div className={`rounded-2xl p-5 text-sm leading-7 xl:text-[15px] ${darkMode ? "bg-slate-900/70 text-slate-200" : "bg-indigo-50 text-slate-700"}`}>
+                                          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-indigo-400">📖 Overview</p>
                                           {item.overview}
                                         </div>
                                       )}
 
                                       {activeSection === "impact" && (
                                         <div className={`rounded-2xl p-5 text-sm leading-7 xl:text-[15px] ${darkMode ? "bg-slate-900/70 text-slate-200" : "bg-sky-50 text-slate-700"}`}>
+                                          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-sky-400">🌊 Daily Impact</p>
                                           {item.dailyImpact}
                                         </div>
                                       )}
 
                                       {activeSection === "symptoms" && (
-                                        <ul className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
+                                        <ul className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
                                           {item.symptoms.map((symptom, i) => (
                                             <li
                                               key={i}
-                                              className={`rounded-2xl border p-4 text-sm leading-6 ${
+                                              className={`flex items-start gap-3 rounded-2xl border p-4 text-sm leading-6 ${
                                                 darkMode
                                                   ? "border-slate-800 bg-slate-900/70 text-slate-200"
-                                                  : "border-slate-100 bg-slate-50 text-slate-700"
+                                                  : "border-slate-100 bg-white text-slate-700 shadow-sm"
                                               }`}
                                             >
-                                              <span className="mr-2 font-bold text-indigo-500">•</span>
+                                              <span className="mt-0.5 shrink-0 text-base">•</span>
                                               {symptom}
                                             </li>
                                           ))}
@@ -1245,23 +1372,24 @@ export default function MentalHealthLibrary() {
                                       )}
 
                                       {activeSection === "feels" && (
-                                        <div className={`rounded-2xl border-l-4 border-indigo-500 p-5 text-sm leading-7 xl:text-[15px] ${darkMode ? "bg-slate-900/70 text-slate-200" : "bg-indigo-50 text-slate-700"}`}>
+                                        <div className={`rounded-2xl border-l-4 border-indigo-400 p-5 text-sm leading-7 xl:text-[15px] ${darkMode ? "bg-slate-900/70 text-slate-200" : "bg-indigo-50 text-slate-700"}`}>
+                                          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-indigo-400">💭 What It Feels Like</p>
                                           {item.feels}
                                         </div>
                                       )}
 
                                       {activeSection === "coping" && (
-                                        <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
+                                        <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
                                           {item.coping.map((tip, i) => (
                                             <div
                                               key={i}
-                                              className={`rounded-2xl p-4 text-sm leading-6 ${
+                                              className={`flex items-start gap-3 rounded-2xl p-4 text-sm leading-6 ${
                                                 darkMode
-                                                  ? "bg-emerald-950/20 text-slate-200"
+                                                  ? "bg-emerald-950/30 text-slate-200"
                                                   : "bg-emerald-50 text-slate-700"
                                               }`}
                                             >
-                                              <span className="mr-2 font-bold text-emerald-500">✓</span>
+                                              <span className="mt-0.5 shrink-0 font-bold text-emerald-500">✓</span>
                                               {tip}
                                             </div>
                                           ))}
@@ -1269,8 +1397,19 @@ export default function MentalHealthLibrary() {
                                       )}
 
                                       {activeSection === "seek" && (
-                                        <div className={`rounded-2xl border-l-4 p-5 ${item.crisis ? "border-red-500 bg-red-50" : "border-amber-400 bg-amber-50"}`}>
-                                          <p className={`text-sm font-semibold leading-7 ${item.crisis ? "text-red-700" : "text-amber-800"}`}>
+                                        <div className={`rounded-2xl border-l-4 p-5 ${
+                                          item.crisis
+                                            ? "border-red-500 bg-red-50"
+                                            : darkMode
+                                            ? "border-amber-400 bg-amber-950/20"
+                                            : "border-amber-400 bg-amber-50"
+                                        }`}>
+                                          <p className={`mb-2 text-xs font-bold uppercase tracking-widest ${
+                                            item.crisis ? "text-red-500" : "text-amber-500"
+                                          }`}>
+                                            {item.crisis ? "🆘 Crisis Support" : "🩺 When To Seek Help"}
+                                          </p>
+                                          <p className={`text-sm font-semibold leading-7 ${item.crisis ? "text-red-700" : darkMode ? "text-amber-300" : "text-amber-800"}`}>
                                             {item.seek}
                                           </p>
                                         </div>
@@ -1279,7 +1418,7 @@ export default function MentalHealthLibrary() {
                                   </AnimatePresence>
 
                                   {item.related?.length > 0 && (
-                                    <div className="mt-5">
+                                    <div className={`mt-6 border-t pt-5 ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
                                       <p className={`mb-3 text-xs font-bold uppercase tracking-[0.18em] ${muted}`}>
                                         Related Topics
                                       </p>
@@ -1325,16 +1464,6 @@ export default function MentalHealthLibrary() {
               transition={{ duration: 0.45 }}
               className="space-y-6 2xl:sticky 2xl:top-28 2xl:self-start"
             >
-              <div className={`rounded-[24px] border p-5 ${card}`}>
-                <p className={`text-sm font-bold uppercase tracking-[0.18em] ${muted}`}>
-                  Tip of the Day
-                </p>
-                <div className="mt-3 text-3xl">{featuredTip.emoji}</div>
-                <p className={`mt-3 text-sm leading-7 ${darkMode ? "text-slate-200" : "text-slate-700"}`}>
-                  {featuredTip.tip}
-                </p>
-              </div>
-
               <div className={`rounded-[24px] border p-5 ${card}`}>
                 <div className="flex items-center gap-2">
                   <div className={`rounded-full p-2 ${darkMode ? "bg-slate-800 text-cyan-300" : "bg-cyan-50 text-cyan-600"}`}>
@@ -1451,51 +1580,34 @@ export default function MentalHealthLibrary() {
             viewport={{ once: true }}
             className={`mt-10 rounded-[24px] border p-5 md:p-6 ${card}`}
           >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className={`text-2xl font-black ${heading}`}>Myths vs Facts</h2>
-                <p className={`mt-2 text-sm ${muted}`}>
-                  Common misconceptions can delay understanding and support.
-                </p>
-              </div>
-              <div className="flex gap-2">
-                {MYTHS_FACTS.map((_, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() => setMythIndex(index)}
-                    className={`h-2.5 w-2.5 rounded-full transition ${
-                      mythIndex === index ? "bg-indigo-600" : darkMode ? "bg-slate-700" : "bg-slate-300"
-                    }`}
-                  />
-                ))}
-              </div>
+            <div>
+              <h2 className={`text-2xl font-black ${heading}`}>Myths vs Facts</h2>
+              <p className={`mt-2 text-sm ${muted}`}>
+                Common misconceptions can delay understanding and support.
+              </p>
             </div>
 
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={mythIndex}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.25 }}
-                className="mt-5 grid gap-4 md:grid-cols-2"
-              >
-                <div className={`rounded-2xl p-5 ${darkMode ? "bg-rose-950/20" : "bg-rose-50"}`}>
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-rose-500">Myth</p>
-                  <p className={`mt-3 text-sm leading-7 ${darkMode ? "text-slate-200" : "text-slate-700"}`}>
-                    {MYTHS_FACTS[mythIndex].myth}
-                  </p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {MYTHS_FACTS.map((item, index) => (
+                <div key={index} className={`rounded-2xl border p-5 ${darkMode ? "border-slate-800 bg-slate-900/70" : "border-slate-100 bg-white shadow-sm"}`}>
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 text-rose-500 font-black text-sm">✕</span>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-widest text-rose-500 mb-1">Myth</p>
+                      <p className={`text-sm leading-6 ${darkMode ? "text-slate-300" : "text-slate-600"}`}>{item.myth}</p>
+                    </div>
+                  </div>
+                  <div className={`my-4 border-t ${darkMode ? "border-slate-700" : "border-slate-100"}`} />
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 text-emerald-500 font-black text-sm">✓</span>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-widest text-emerald-500 mb-1">Fact</p>
+                      <p className={`text-sm leading-6 ${darkMode ? "text-slate-300" : "text-slate-600"}`}>{item.fact}</p>
+                    </div>
+                  </div>
                 </div>
-
-                <div className={`rounded-2xl p-5 ${darkMode ? "bg-emerald-950/20" : "bg-emerald-50"}`}>
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-500">Fact</p>
-                  <p className={`mt-3 text-sm leading-7 ${darkMode ? "text-slate-200" : "text-slate-700"}`}>
-                    {MYTHS_FACTS[mythIndex].fact}
-                  </p>
-                </div>
-              </motion.div>
-            </AnimatePresence>
+              ))}
+            </div>
           </motion.section>
 
           <p className={`mt-10 text-center text-xs leading-6 ${muted}`}>
@@ -1564,25 +1676,14 @@ function HeroTypewriter({ words, darkMode }) {
 
 function TopStat({ icon: Icon, label, value, darkMode }) {
   return (
-    <motion.div
-      whileHover={{ y: -3 }}
-      className={`rounded-2xl border px-4 py-4 ${
-        darkMode ? "border-slate-800 bg-slate-950/80" : "border-white bg-white/85"
-      }`}
-    >
-      <div className="flex items-center gap-2">
-        <div
-          className={`flex h-8 w-8 items-center justify-center rounded-full ${
-            darkMode ? "bg-slate-800 text-slate-200" : "bg-indigo-50 text-indigo-600"
-          }`}
-        >
-          <Icon className="text-sm" />
-        </div>
-        <p className={`${darkMode ? "text-slate-400" : "text-slate-500"} text-xs font-bold uppercase tracking-[0.18em]`}>
-          {label}
-        </p>
+    <div className={`w-36 rounded-xl border px-4 py-3.5 ${
+      darkMode ? "border-slate-800 bg-slate-950/80" : "border-white bg-white/85"
+    }`}>
+      <div className="flex flex-col items-center gap-1">
+        <Icon className={`text-sm ${darkMode ? "text-slate-300" : "text-indigo-600"}`} />
+        <p className={`text-xs font-bold uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{label}</p>
+        <p className={`text-2xl font-black ${darkMode ? "text-white" : "text-slate-900"}`}>{value}</p>
       </div>
-      <p className={`mt-3 text-2xl font-black ${darkMode ? "text-white" : "text-slate-900"}`}>{value}</p>
-    </motion.div>
+    </div>
   );
 }

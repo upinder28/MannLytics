@@ -20,7 +20,7 @@ function ItemModal({ initial, onClose, onSave }) {
     if (!form.title.trim() || !form.category.trim()) { setError("Title and category are required."); return; }
     setLoading(true); setError("");
     try {
-      const url = isEdit ? `http://localhost:5000/api/admin/safespace/${initial._id}` : "http://localhost:5000/api/admin/safespace";
+      const url = isEdit ? `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/admin/safespace/${initial._id}` : `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/admin/safespace`;
       const res = await fetch(url, { method: isEdit ? "PUT" : "POST", headers: getAdminHeaders(), body: JSON.stringify(form) });
       const data = await res.json();
       if (!res.ok) { setError(data.message || "Save failed."); return; }
@@ -109,7 +109,7 @@ export default function AdminSafeSpace() {
   const [filterCat, setFilterCat] = useState("all");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/admin/safespace", { headers: getAdminHeaders() })
+    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/admin/safespace`, { headers: getAdminHeaders() })
       .then(r => r.json()).then(d => setItems(Array.isArray(d) ? d : [])).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
@@ -120,7 +120,7 @@ export default function AdminSafeSpace() {
 
   const handleDelete = async () => {
     const id = confirmDelete; setConfirmDelete(null);
-    await fetch(`http://localhost:5000/api/admin/safespace/${id}`, { method: "DELETE", headers: getAdminHeaders() }).catch(() => {});
+    await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/admin/safespace/${id}`, { method: "DELETE", headers: getAdminHeaders() }).catch(() => {});
     setItems(prev => prev.filter(i => i._id !== id));
   };
 

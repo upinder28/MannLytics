@@ -31,8 +31,8 @@ export default function AdminUsers() {
     const fetchData = async () => {
       try {
         const [uRes, jRes] = await Promise.all([
-          fetch("http://localhost:5000/api/admin/users",   { headers: getAdminHeaders() }),
-          fetch("http://localhost:5000/api/admin/journals", { headers: getAdminHeaders() }),
+          fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/admin/users`,   { headers: getAdminHeaders() }),
+          fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/admin/journals`, { headers: getAdminHeaders() }),
         ]);
         const users = await uRes.json();
         const journals = await jRes.json();
@@ -47,14 +47,14 @@ export default function AdminUsers() {
 
   const handleDeleteUser = async () => {
     const { id } = confirmDelete; setConfirmDelete(null);
-    await fetch(`http://localhost:5000/api/admin/users/${id}`, { method: "DELETE", headers: getAdminHeaders() }).catch(() => {});
+    await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/admin/users/${id}`, { method: "DELETE", headers: getAdminHeaders() }).catch(() => {});
     setUsers(prev => prev.filter(u => u._id !== id));
     if (expandedUser === id) setExpandedUser(null);
   };
 
   const handleDeleteJournal = async () => {
     const { id, userId } = confirmDelete; setConfirmDelete(null);
-    await fetch(`http://localhost:5000/api/admin/journals/${id}`, { method: "DELETE", headers: getAdminHeaders() }).catch(() => {});
+    await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/admin/journals/${id}`, { method: "DELETE", headers: getAdminHeaders() }).catch(() => {});
     setJournalsByUser(prev => ({ ...prev, [userId]: (prev[userId] || []).filter(j => j._id !== id) }));
   };
 

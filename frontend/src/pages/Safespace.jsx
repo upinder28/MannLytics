@@ -667,7 +667,7 @@ function SafeSpace() {
   useEffect(() => {
     const fetchSafeSpaceItems = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/safe-space");
+        const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/safe-space`);
         const data = await res.json();
 
         if (Array.isArray(data) && data.length > 0) {
@@ -721,7 +721,7 @@ function SafeSpace() {
 
   useEffect(() => {
     if (!currentUserEmail) return;
-    fetch(`http://localhost:5000/api/user/${currentUserEmail}`)
+    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/user/${currentUserEmail}`)
       .then(r => r.json())
       .then(data => {
         const notifEnabled = data.notifications ?? true;
@@ -982,7 +982,7 @@ function SafeSpace() {
             <div className={`absolute inset-0 ${
               darkMode
                 ? "bg-gradient-to-r from-[#1e293b] from-20% via-[#1e293b]/50 to-transparent"
-                : "bg-gradient-to-r from-[#4f46e5] from-10% via-[#3b82f6]/70 via-40% to-[#7dd3fc]/20"
+                : "bg-gradient-to-r from-[#818cf8] from-10% via-[#3b82f6]/70 via-40% to-[#7dd3fc]/20"
             }`} />
           </div>
 

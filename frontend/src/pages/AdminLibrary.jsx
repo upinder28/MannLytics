@@ -27,7 +27,7 @@ function ArticleModal({ initial, onClose, onSave }) {
     setLoading(true); setError("");
     const payload = { ...form, symptoms: form.symptoms ? form.symptoms.split("\n").map(s => s.trim()).filter(Boolean) : [], coping: form.coping ? form.coping.split("\n").map(s => s.trim()).filter(Boolean) : [] };
     try {
-      const url = isEdit ? `http://localhost:5000/api/admin/library/${initial._id}` : "http://localhost:5000/api/admin/library";
+      const url = isEdit ? `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/admin/library/${initial._id}` : `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/admin/library`;
       const res = await fetch(url, { method: isEdit ? "PUT" : "POST", headers: getAdminHeaders(), body: JSON.stringify(payload) });
       const data = await res.json();
       if (!res.ok) { setError(data.message || "Save failed."); return; }
@@ -139,7 +139,7 @@ export default function AdminLibrary() {
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/admin/library", { headers: getAdminHeaders() })
+    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/admin/library`, { headers: getAdminHeaders() })
       .then(r => r.json()).then(d => setArticles(Array.isArray(d) ? d : [])).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
@@ -150,7 +150,7 @@ export default function AdminLibrary() {
 
   const handleDelete = async () => {
     const id = confirmDelete; setConfirmDelete(null);
-    await fetch(`http://localhost:5000/api/admin/library/${id}`, { method: "DELETE", headers: getAdminHeaders() }).catch(() => {});
+    await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/admin/library/${id}`, { method: "DELETE", headers: getAdminHeaders() }).catch(() => {});
     setArticles(prev => prev.filter(a => a._id !== id));
   };
 
