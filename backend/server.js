@@ -9,6 +9,7 @@ const LibraryArticle = require("./models/LibraryArticle");
 const authRoutes = require("./routes/auth");
 const chatRoutes = require("./routes/chat");
 const safeSpaceRoutes = require("./routes/safeSpaceRoutes");
+const userRoutes = require("./routes/user");
 
 const app = express();
 
@@ -45,9 +46,17 @@ async function autoSeedLibrary() {
 }
 
 // 🔥 CORS CONFIG
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
@@ -58,6 +67,7 @@ app.use(morgan("dev"));
 
 // 🔥 Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/journal", require("./routes/journal"));
 app.use("/api", chatRoutes);
 app.use("/api/safe-space", safeSpaceRoutes);

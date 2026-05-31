@@ -755,7 +755,7 @@ export default function Home() {
         >
           © {new Date().getFullYear()} Mannlytics. All rights reserved.
           <br />
-          Developed by Upinder Kaur, Yashika Taneja & Yashika Khanna
+          Developed by Upinder Kaur, Yashika Taneja 
         </div>
       </footer>
 

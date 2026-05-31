@@ -107,7 +107,7 @@ export default function AppNavbar({ darkMode, toggleDarkMode, showGetStarted = f
   return (
     <>
       <nav className={`fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-xl ${darkMode ? "bg-gray-900/95 border-gray-700" : "bg-white/90 border-indigo-100"}`}>
-        <div className="flex items-center justify-between px-4 md:px-6 lg:px-10 xl:px-14 py-4">
+        <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 lg:px-10 xl:px-14 py-2 sm:py-3 md:py-4">
 
           {/* LEFT — hamburger (mobile) + logo */}
           <div className="flex items-center gap-3">
@@ -129,11 +129,11 @@ export default function AppNavbar({ darkMode, toggleDarkMode, showGetStarted = f
             </button>
 
             {/* LOGO */}
-            <Link to="/" className="flex items-center gap-3 group transition duration-300">
-              <img src={pic} className="h-12 w-12 rounded-2xl object-contain shadow-sm transition duration-300 group-hover:scale-110" />
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 group transition duration-300">
+              <img src={pic} className="h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12 rounded-2xl object-contain shadow-sm transition duration-300 group-hover:scale-110" />
               <div className="transition duration-300 group-hover:scale-105">
-                <p className="text-xl font-bold text-indigo-600 tracking-wide">Mannlytics</p>
-                <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>AI-Powered Mental Health Analytics</p>
+                <p className="text-xs xs:text-sm sm:text-xl font-bold text-indigo-600 tracking-wide">Mannlytics</p>
+                <p className={`text-[9px] sm:text-xs hidden sm:block ${darkMode ? "text-gray-400" : "text-gray-500"}`}>AI-Powered Mental Health Analytics</p>
               </div>
             </Link>
           </div>
@@ -162,14 +162,14 @@ export default function AppNavbar({ darkMode, toggleDarkMode, showGetStarted = f
           </div>
 
           {/* RIGHT — bell + dark mode + avatar */}
-          <div className={`flex items-center gap-3 ${minimal ? "!hidden" : ""}`}>
+          <div className={`flex items-center gap-1.5 xs:gap-2 sm:gap-3 ${minimal ? "!hidden" : ""}`}>
             {currentUserEmail && (
               <div className="relative" ref={bellRef}>
                 <button
                   onClick={() => { setBellOpen(p => !p); setUnreadCount(0); }}
-                  className={`relative h-14 w-14 flex items-center justify-center rounded-full border transition ${darkMode ? "bg-gray-800 border-gray-600 text-gray-300 hover:text-white" : "bg-white border-indigo-200 text-indigo-600"}`}
+                  className={`relative h-9 w-9 xs:h-11 xs:w-11 sm:h-14 sm:w-14 flex items-center justify-center rounded-full border transition ${darkMode ? "bg-gray-800 border-gray-600 text-gray-300 hover:text-white" : "bg-white border-indigo-200 text-indigo-600"}`}
                 >
-                  <FaBell size={22} />
+                  <FaBell className="text-[16px] xs:text-[18px] sm:text-[22px]" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shadow">
                       {unreadCount > 9 ? "9+" : unreadCount}
@@ -181,7 +181,7 @@ export default function AppNavbar({ darkMode, toggleDarkMode, showGetStarted = f
                 {bellOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setBellOpen(false)} />
-                    <div className={`absolute right-0 mt-3 w-80 rounded-2xl shadow-2xl border z-50 overflow-hidden transition-all duration-300 ${
+                    <div className={`absolute right-0 mt-3 w-72 sm:w-80 rounded-2xl shadow-2xl border z-50 overflow-hidden transition-all duration-300 ${
                       darkMode ? "bg-gray-800 border-gray-700 text-gray-200" : "bg-white border-indigo-100 text-gray-800"
                     }`}>
                       {/* Panel Header */}
@@ -237,9 +237,12 @@ export default function AppNavbar({ darkMode, toggleDarkMode, showGetStarted = f
             {/* DARK MODE */}
             <button
               onClick={toggleDarkMode}
-              className={`h-14 w-14 flex items-center justify-center rounded-full border transition ${darkMode ? "bg-gray-800 border-gray-600 text-yellow-300" : "bg-white border-indigo-200 text-indigo-600"}`}
+              className={`h-9 w-9 xs:h-11 xs:w-11 sm:h-14 sm:w-14 flex items-center justify-center rounded-full border transition ${darkMode ? "bg-gray-800 border-gray-600 text-yellow-300" : "bg-white border-indigo-200 text-indigo-600"}`}
             >
-              {darkMode ? <FaSun size={22} /> : <FaMoon size={22} />}
+              {darkMode
+                ? <FaSun className="text-[16px] xs:text-[18px] sm:text-[22px]" />
+                : <FaMoon className="text-[16px] xs:text-[18px] sm:text-[22px]" />
+              }
             </button>
 
             {/* AVATAR */}
@@ -247,7 +250,7 @@ export default function AppNavbar({ darkMode, toggleDarkMode, showGetStarted = f
               <div className="relative" ref={dropdownRef}>
                 <div
                   onClick={() => setOpenDropdown(p => !p)}
-                  className="h-14 w-14 rounded-full flex items-center justify-center text-white font-bold cursor-pointer shadow-md overflow-hidden"
+                  className="h-9 w-9 xs:h-11 xs:w-11 sm:h-14 sm:w-14 rounded-full flex items-center justify-center text-white font-bold cursor-pointer shadow-md overflow-hidden text-sm xs:text-base"
                   style={{ background: "linear-gradient(135deg, #4f46e5, #06b6d4)" }}
                 >
                   {currentUserName?.charAt(0)?.toUpperCase()}
@@ -348,7 +351,7 @@ export default function AppNavbar({ darkMode, toggleDarkMode, showGetStarted = f
       {/* TOAST POPUP */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-[100] max-w-sm rounded-2xl border shadow-2xl p-4 flex items-start gap-3 ${
+          className={`fixed bottom-4 right-3 left-3 sm:left-auto sm:right-6 sm:bottom-6 z-[100] sm:max-w-sm rounded-2xl border shadow-2xl p-4 flex items-start gap-3 ${
             darkMode ? "bg-gray-800 border-gray-700 text-gray-100" : "bg-white border-indigo-100 text-slate-800"
           }`}
           style={{ animation: "slideInUp 0.4s ease" }}

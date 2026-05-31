@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../firebase";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Settings({ onClose }) {
   const navigate = useNavigate();
@@ -11,7 +12,6 @@ export default function Settings({ onClose }) {
     name: "",
     email: "",
     password: "",
-    profilePic: "",
   });
 
   const [darkMode, setDarkMode] = useState(
@@ -39,6 +39,7 @@ const [isEditing, setIsEditing] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   // LOAD USER
   useEffect(() => {
  const storedUser =
@@ -58,24 +59,21 @@ try {
 }
 
   // 🔥 BACKEND DATA LOAD
-  fetch(`http://localhost:5000/api/user/${email}`)
+  fetch(`${import.meta.env.VITE_API_URL}/user/${email}`)
     .then(res => res.json())
     .then(data => {
       setUser({
         name: data.name || "",
         email: data.email || "",
         password: "",
-        profilePic: localStorage.getItem("profilePic") || "",
       });
       setNotifications(data.notifications ?? true);
     })
     .catch(err => console.error(err));
 
-  // 🔥 real-time profile pic update
   const handleProfileUpdate = () => {
     setUser(prev => ({
       ...prev,
-      profilePic: localStorage.getItem("profilePic") || "",
       name: sessionStorage.getItem("currentUserName") || prev.name,
     }));
   };
@@ -91,17 +89,17 @@ try {
 
   const handlePasswordSave = async () => {
     if (!oldPassword || !user.password || !confirmPassword) {
-      return alert("Please fill in all password fields");
+      return toast.error("Please fill in all password fields");
     }
     if (user.password !== confirmPassword) {
-      return alert("New passwords do not match ❌");
+      return toast.error("New passwords do not match");
     }
     if (user.password.length < 6) {
-      return alert("Password must be at least 6 characters");
+      return toast.error("Password must be at least 6 characters");
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/user/update-password", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/user/update-password`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -111,20 +109,20 @@ try {
         }),
       });
       const data = await res.json();
-      if (!res.ok) return alert(data.error || "Failed ❌");
-      alert("Password updated successfully ✅");
+      if (!res.ok) return toast.error(data.error || "Failed to update password");
+      toast.success("Password updated successfully!");
       setOldPassword("");
       setUser(prev => ({ ...prev, password: "" }));
       setConfirmPassword("");
     } catch {
-      alert("Error updating password ❌");
+      toast.error("Error updating password");
     }
   };
 
   const handleToggleNotifications = (value) => {
     setNotifications(value);
     if (!user.email) return;
-    fetch("http://localhost:5000/api/user/update", {
+    fetch(`${import.meta.env.VITE_API_URL}/user/update`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: user.email, notifications: value }),
@@ -135,7 +133,7 @@ try {
   if (!user.email) return;
 
   // 🔥 BACKEND API CALL
-  fetch("http://localhost:5000/api/user/update", {
+  fetch(`${import.meta.env.VITE_API_URL}/user/update`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -153,10 +151,10 @@ try {
       sessionStorage.setItem("currentUserName", user.name);
       window.dispatchEvent(new Event("profileUpdate"));
       setIsEditing(false);
-      alert("Changes saved successfully 🎉");
+      toast.success("Changes saved successfully!");
     })
     .catch(() => {
-      alert("Error saving ❌");
+      toast.error("Error saving changes");
     });
 };
 
@@ -183,23 +181,6 @@ try {
 
         {/* SCROLLABLE CONTENT ONLY */}
         <div className="px-8 py-6 space-y-6 overflow-y-auto flex-1">
-
-        {/* MINI PROFILE CARD */}
-        <div className={`flex items-center gap-4 p-4 rounded-2xl ${ darkMode ? "bg-gray-700" : "bg-indigo-50" }`}>
-          <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-indigo-200">
-            {user.profilePic ? (
-              <img src={user.profilePic} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-r from-indigo-500 to-cyan-400 flex items-center justify-center text-white text-xl font-bold">
-                {user.name?.charAt(0)}
-              </div>
-            )}
-          </div>
-          <div>
-            <p className={`font-semibold ${ darkMode ? "text-white" : "text-gray-800" }`}>{user.name}</p>
-            <p className={`text-sm ${ darkMode ? "text-gray-400" : "text-gray-500" }`}>{user.email}</p>
-          </div>
-        </div>
 
         {/* PROFILE SECTION */}
 <div className={`p-5 border rounded-xl ${ darkMode ? "border-gray-600" : "" }`}>
@@ -312,12 +293,12 @@ try {
     <button
       className="text-sm text-indigo-600 hover:underline"
       onClick={async () => {
-        if (!user.email) return alert("Email not found");
+        if (!user.email) return toast.error("Email not found");
         try {
           await sendPasswordResetEmail(auth, user.email);
-          alert("Reset link sent to your email ✅");
+          toast.success("Reset link sent to your email!");
         } catch (err) {
-          alert(err.message);
+          toast.error(err.message);
         }
       }}
     >
@@ -361,47 +342,54 @@ try {
 
 <div className={`p-5 border border-red-200 rounded-xl ${ darkMode ? "bg-red-900/20" : "bg-red-50" }`}>
   <h2 className="text-lg font-semibold mb-3 text-red-500">⚠️ Delete Account</h2>
-
   <p className={`text-sm mb-4 ${ darkMode ? "text-gray-300" : "text-gray-600" }`}>
-    Deleting your account will permanently remove all your data.
-    This action cannot be undone.
+    Deleting your account will permanently remove all your data. This action cannot be undone.
   </p>
-
-  <button
-    className="bg-red-500 text-white px-5 py-2 rounded-lg hover:bg-red-600 transition"
-    onClick={async () => {
-      const confirmDelete = window.confirm("Are you sure? This will permanently delete your account and all data.");
-      if (!confirmDelete) return;
-
-      try {
-        const res = await fetch(`http://localhost:5000/api/user/${user.email}`, {
-          method: "DELETE",
-        });
-
-        if (!res.ok) throw new Error();
-
-        // clear all local data
-        sessionStorage.clear();
-        localStorage.removeItem(`moodHistory_${user.email}`);
-        localStorage.removeItem(`journalStreak_${user.email}`);
-        localStorage.removeItem(`lastDate_${user.email}`);
-        localStorage.removeItem(`profilePic`);
-
-        window.dispatchEvent(new Event("profileUpdate"));
-        if (onClose) onClose();
-        navigate("/");
-      } catch {
-        alert("Failed to delete account ❌");
-      }
-    }}
-  >
-    Delete Account
-  </button>
+  {!confirmDelete ? (
+    <button
+      className="bg-red-500 text-white px-5 py-2 rounded-lg hover:bg-red-600 transition"
+      onClick={() => setConfirmDelete(true)}
+    >
+      Delete Account
+    </button>
+  ) : (
+    <div className={`p-3 rounded-lg ${ darkMode ? "bg-gray-700" : "bg-white" } space-y-2`}>
+      <p className="text-sm font-medium text-red-500">Are you sure? This cannot be undone.</p>
+      <div className="flex gap-3">
+        <button
+          className="bg-red-500 text-white px-4 py-1.5 rounded-lg hover:bg-red-600 transition text-sm"
+          onClick={async () => {
+            try {
+              const res = await fetch(`${import.meta.env.VITE_API_URL}/user/${user.email}`, { method: "DELETE" });
+              if (!res.ok) throw new Error();
+              sessionStorage.clear();
+              localStorage.removeItem(`moodHistory_${user.email}`);
+              localStorage.removeItem(`journalStreak_${user.email}`);
+              localStorage.removeItem(`lastDate_${user.email}`);
+              window.dispatchEvent(new Event("profileUpdate"));
+              if (onClose) onClose();
+              navigate("/");
+            } catch {
+              toast.error("Failed to delete account");
+              setConfirmDelete(false);
+            }
+          }}
+        >
+          Yes, Delete
+        </button>
+        <button
+          className={`px-4 py-1.5 rounded-lg text-sm border transition ${ darkMode ? "border-gray-500 text-gray-300 hover:bg-gray-600" : "border-gray-300 text-gray-600 hover:bg-gray-100" }`}
+          onClick={() => setConfirmDelete(false)}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  )}
 </div>
 
-        {/* BUTTONS */}
-
         </div>
+      <Toaster position="top-center" />
     </div>
   );
 }

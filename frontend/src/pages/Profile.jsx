@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { FaEnvelope, FaEdit } from "react-icons/fa";
 import AppNavbar from "../Components/AppNavbar";
 import Settings from "./Setting";
@@ -19,12 +19,9 @@ export default function Profile() {
   const [user, setUser] = useState({
     name: "",
     email: "",
-    profilePic: "",
     joinedAt: ""
   });
 
-  const avatarRef = useRef(null);
-  const [avatarOpen, setAvatarOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
@@ -32,13 +29,10 @@ export default function Profile() {
     const loadUser = () => {
       const email = sessionStorage.getItem("currentUser");
       const name = sessionStorage.getItem("currentUserName");
-      const pic = localStorage.getItem("profilePic");
-
       if (email || name) {
         setUser({
           name: name || "User",
           email: email || "",
-          profilePic: pic || ""
         });
       }
     };
@@ -47,7 +41,7 @@ export default function Profile() {
 
     const email = sessionStorage.getItem("currentUser");
     if (email) {
-      fetch(`http://localhost:5000/api/user/${email}`)
+      fetch(`${import.meta.env.VITE_API_URL}/user/${email}`)
         .then(res => res.json())
         .then(data => {
           if (data?.createdAt) {
@@ -62,14 +56,6 @@ export default function Profile() {
 
     window.addEventListener("profileUpdate", loadUser);
     return () => window.removeEventListener("profileUpdate", loadUser);
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (avatarRef.current && !avatarRef.current.contains(e.target)) setAvatarOpen(false);
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const [stats, setStats] = useState({
@@ -97,12 +83,10 @@ export default function Profile() {
 
     const email = sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser");
     if (email) {
-      fetch(`http://localhost:5000/api/journal/history/${email}`)
+      fetch(`${import.meta.env.VITE_API_URL}/journal/history/${email}`)
         .then(r => r.json())
         .then(data => {
           const key = `moodHistory_${email}`;
-          const local = JSON.parse(localStorage.getItem(key)) || [];
-
           // Merge MongoDB + localStorage (keep both, deduplicate by date+emotion)
           const dbEntries = Array.isArray(data) ? data.map(e => ({
             id: e._id,
@@ -111,6 +95,7 @@ export default function Profile() {
             riskScore: Number((e.analysis?.riskScore || e.riskScore || 0).toFixed(2)),
             sentimentScore: Number((e.analysis?.sentiment_score || e.sentimentScore || 0).toFixed(3)),
             emotion: e.analysis?.emotion || e.emotion || "neutral",
+            emoji: e.analysis?.emoji || e.emoji || "",
             predictedLabel: e.analysis?.predicted_label || e.predictedLabel || "Normal",
             journal: e.text || e.journal || "",
             day: new Date(e.createdAt).toLocaleDateString("en-US", { weekday: "short" }),
@@ -234,87 +219,31 @@ export default function Profile() {
 
       <AppNavbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
 
-      <div className="pt-28 px-6 lg:px-20 w-full">
+      <div className="pt-20 sm:pt-28 px-3 sm:px-6 lg:px-20 w-full pb-10">
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 sm:gap-10 w-full">
 
           {/* LEFT SIDE */}
           <div className="lg:col-span-2 space-y-8">
 
             {/* PROFILE CARD */}
-            <div className={`${ darkMode ? "bg-gray-800" : "bg-white/80" } backdrop-blur-xl p-6 rounded-3xl shadow-xl text-center max-w-lg mx-auto`}>
+            <div className={`${ darkMode ? "bg-gray-800" : "bg-white/80" } backdrop-blur-xl p-4 sm:p-6 rounded-3xl shadow-xl text-center w-full mx-auto`}>
 
-              <div className="relative w-32 h-32 mx-auto" ref={avatarRef}>
-                {user.profilePic ? (
-                  <img
-                    src={user.profilePic}
-                    className="w-32 h-32 rounded-full border-4 border-indigo-200 object-cover"
-                  />
-                ) : (
-                  <div className="w-32 h-32 rounded-full border-4 border-indigo-200 bg-gradient-to-r from-indigo-500 to-cyan-400 flex items-center justify-center text-white text-4xl font-bold">
-                    {user.name?.charAt(0)}
-                  </div>
-                )}
-
-                <button
-                  onClick={() => setAvatarOpen(!avatarOpen)}
-                  className="absolute bottom-0 right-0 bg-indigo-600 p-2 rounded-full text-white shadow-lg hover:scale-110 transition"
-                >
-                  <FaEdit size={12} />
-                </button>
-
-                {avatarOpen && (
-                  <div className={`absolute left-1/2 -translate-x-1/2 mt-2 w-48 border rounded-2xl shadow-xl p-2 z-50 ${ darkMode ? "bg-gray-800 border-gray-600" : "bg-white border-gray-200" }`}>
-                    <label className={`flex items-center gap-3 px-4 py-2.5 text-sm rounded-xl cursor-pointer transition ${ darkMode ? "text-gray-200 hover:bg-gray-700" : "text-gray-700 hover:bg-indigo-50" }`}>
-                      <span className="text-lg">📁</span>
-                      <span className="font-medium">Upload Photo</span>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (!file) return;
-                          const reader = new FileReader();
-                          reader.onload = () => {
-                            const img = reader.result;
-                            setUser((prev) => ({ ...prev, profilePic: img }));
-                            localStorage.setItem("profilePic", img);
-                            window.dispatchEvent(new Event("profileUpdate"));
-                            setAvatarOpen(false);
-                          };
-                          reader.readAsDataURL(file);
-                        }}
-                      />
-                    </label>
-                    <button
-                      onClick={() => {
-                        setUser((prev) => ({ ...prev, profilePic: "" }));
-                        localStorage.removeItem("profilePic");
-                        window.dispatchEvent(new Event("profileUpdate"));
-                        setAvatarOpen(false);
-                      }}
-                      style={{ backgroundColor: "transparent" }}
-                      className={`flex items-center gap-3 w-full px-4 py-2.5 text-sm rounded-xl transition ${ darkMode ? "text-red-400 hover:bg-red-900/30" : "text-red-500 hover:bg-red-50" }`}
-                    >
-                      <span className="text-lg">🗑️</span>
-                      <span className="font-medium">Remove Photo</span>
-                    </button>
-                  </div>
-                )}
+              <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-full border-4 border-indigo-200 bg-gradient-to-r from-indigo-500 to-cyan-400 flex items-center justify-center text-white text-3xl sm:text-4xl font-bold">
+                {user.name?.charAt(0)}
               </div>
 
-              <h2 className="mt-5 font-extrabold text-indigo-600 text-2xl">
+              <h2 className="mt-4 font-extrabold text-indigo-600 text-xl sm:text-2xl">
                 {user.name}
               </h2>
-              <p className={`text-base font-medium flex justify-center gap-2 mt-1 ${ darkMode ? "text-gray-300" : "text-gray-600" }`}>
-                <FaEnvelope className="mt-1" /> {user.email}
+              <p className={`text-sm font-medium flex justify-center gap-2 mt-1 break-all ${ darkMode ? "text-gray-300" : "text-gray-600" }`}>
+                <FaEnvelope className="mt-1 shrink-0" /> {user.email}
               </p>
               <p className={`text-sm font-medium mt-3 ${ darkMode ? "text-gray-400" : "text-gray-500" }`}>
                 📅 Joined {user.joinedAt || "--"}
               </p>
               <p className={`text-sm font-medium mt-1 ${ darkMode ? "text-gray-400" : "text-gray-500" }`}>
-                🔥 {stats.streak} Day Streak
+                🔥 {Number(stats.streak)} Day Streak
               </p>
               <button
                 onClick={() => setSettingsOpen(true)}
@@ -359,12 +288,12 @@ export default function Profile() {
               const lastEntry = history[history.length - 1];
               const monthName = now.toLocaleString("default", { month: "long", year: "numeric" });
               return (
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
 
                   {/* MOOD SUMMARY */}
-                  <div className={`p-6 rounded-2xl shadow-lg ${ darkMode ? "bg-gray-800" : "bg-white/80" } backdrop-blur-xl`}>
+                  <div className={`p-4 sm:p-6 rounded-2xl shadow-lg ${ darkMode ? "bg-gray-800" : "bg-white/80" } backdrop-blur-xl`}>
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className={`font-semibold text-base ${ darkMode ? "text-white" : "text-gray-800" }`}>📊 Mood Summary</h3>
+                      <h3 className={`font-semibold text-sm sm:text-base ${ darkMode ? "text-white" : "text-gray-800" }`}>📊 Mood Summary</h3>
                       <span className="text-xs text-gray-400">{monthName}</span>
                     </div>
                     {total === 0 ? (
@@ -388,8 +317,8 @@ export default function Profile() {
                   </div>
 
                   {/* LAST JOURNAL */}
-                  <div className={`p-6 rounded-2xl shadow-lg ${ darkMode ? "bg-gray-800" : "bg-white/80" } backdrop-blur-xl`}>
-                    <h3 className={`font-semibold text-base mb-4 ${ darkMode ? "text-white" : "text-gray-800" }`}>🗒️ Last Journal</h3>
+                  <div className={`p-4 sm:p-6 rounded-2xl shadow-lg ${ darkMode ? "bg-gray-800" : "bg-white/80" } backdrop-blur-xl`}>
+                    <h3 className={`font-semibold text-sm sm:text-base mb-4 ${ darkMode ? "text-white" : "text-gray-800" }`}>🗒️ Last Journal</h3>
                     {!lastEntry ? (
                       <p className="text-sm text-gray-400">No entries yet. Write your first one! ✍️</p>
                     ) : (
@@ -433,7 +362,7 @@ export default function Profile() {
             })()}
 
             {/* RECENT JOURNAL ENTRIES */}
-            <div className={`${ darkMode ? "bg-gray-800/80" : "bg-white/80" } backdrop-blur-xl p-6 rounded-2xl shadow-lg`}>
+            <div className={`${ darkMode ? "bg-gray-800/80" : "bg-white/80" } backdrop-blur-xl p-4 sm:p-6 rounded-2xl shadow-lg`}>
               <div className="flex justify-between items-center mb-3">
                 <h3 className={`font-semibold text-lg ${ darkMode ? "text-white" : "" }`}>
                   📔 Recent Journal Entries
@@ -451,10 +380,10 @@ export default function Profile() {
                 <ul className="space-y-3 text-sm">
                   {stats.recent.map((item) => (
                     <li
-                      key={item.id}
-                      className={`p-3 rounded-lg flex justify-between items-center ${ darkMode ? "bg-gray-700 text-gray-200" : "bg-gray-50" }`}
+                      key={item.id || item.createdAt}
+                      className={`p-3 rounded-lg flex flex-wrap justify-between items-center gap-2 ${ darkMode ? "bg-gray-700 text-gray-200" : "bg-gray-50" }`}
                     >
-                      <span className={`${ darkMode ? "text-gray-400" : "text-gray-500" }`}>
+                      <span className={`text-xs sm:text-sm ${ darkMode ? "text-gray-400" : "text-gray-500" }`}>
                         {new Date(item.createdAt).toDateString()}
                       </span>
                       <span className={`text-xs font-semibold px-2 py-1 rounded-full capitalize ${
@@ -484,12 +413,12 @@ export default function Profile() {
         const sorted = [...all].reverse();
         return (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
+            className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-8"
             onClick={() => setHistoryOpen(false)}
           >
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
             <div
-              className={`relative z-10 w-full max-w-2xl max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col ${ darkMode ? "bg-gray-800 text-white" : "bg-white" }`}
+              className={`relative z-10 w-full max-w-2xl max-h-[92vh] sm:max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col ${ darkMode ? "bg-gray-800 text-white" : "bg-white" }`}
               onClick={(e) => e.stopPropagation()}
             >
               <div className={`flex justify-between items-center px-6 py-4 border-b flex-shrink-0 ${ darkMode ? "bg-gray-800 border-gray-600" : "bg-white border-gray-100" }`}>
@@ -505,7 +434,7 @@ export default function Profile() {
                 ) : (
                   <ul className="space-y-3">
                     {sorted.map((item, i) => (
-                      <li key={i} className={`p-4 rounded-xl ${ darkMode ? "bg-gray-700" : "bg-gray-50" }`}>
+                      <li key={item.id || item.createdAt || i} className={`p-4 rounded-xl ${ darkMode ? "bg-gray-700" : "bg-gray-50" }`}>
                         <div className="flex justify-between items-start mb-2">
                           <div>
                             <p className="text-xs text-gray-400">
@@ -557,7 +486,7 @@ export default function Profile() {
       {/* SETTINGS MODAL */}
       {settingsOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-8"
           onClick={() => setSettingsOpen(false)}
         >
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />

@@ -1,38 +1,15 @@
-// import { initializeApp } from "firebase/app";
-// import { getAuth, GoogleAuthProvider } from "firebase/auth";
-
-// const firebaseConfig = {
-//   apiKey: "AIzaSyA2P_u7TeZuVYBbs1cAuML414LVGIWxZTw",
-//   authDomain: "moodlyai-7a011.firebaseapp.com",
-//   projectId: "moodlyai-7a011",
-//   storageBucket: "moodlyai-7a011.firebasestorage.app",
-//   messagingSenderId: "301553702453",
-//   appId: "1:301553702453:web:8e2ef3150d0b115bf5037c",
-//   measurementId: "G-4QGQTPR9R4"
-// };
-
-// const app = initializeApp(firebaseConfig);
-
-// export const auth = getAuth(app);
-// export const provider = new GoogleAuthProvider();
-// provider.setCustomParameters({
-//   prompt: "select_account"   // 👈 EH ADD KARNA
-// });
-
-
-
 // src/firebase.js
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA2P_u7TeZuVYBbs1cAuML414LVGIWxZTw",
-  authDomain: "moodlyai-7a011.firebaseapp.com",
-  projectId: "moodlyai-7a011",
-  storageBucket: "moodlyai-7a011.appspot.com",
-  messagingSenderId: "301553702453",
-  appId: "1:301553702453:web:8e2ef3150d0b115bf5037c",
-  measurementId: "G-4QGQTPR9R4"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
@@ -41,7 +18,6 @@ const app = initializeApp(firebaseConfig);
 // Auth & Provider
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
-provider.setCustomParameters({ prompt: "select_account" }); // always prompt account selection
+provider.setCustomParameters({ prompt: "select_account" });
 
-// Export **only once**
 export { auth, provider };
