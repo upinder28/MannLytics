@@ -41,9 +41,9 @@ export default function AdminLogin() {
         <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-cyan-600/8 blur-[100px]" />
       </div>
 
-      <div className="relative w-full max-w-[420px]">
+      <div className="relative w-full max-w-[480px]">
         {/* Card */}
-        <div className="bg-[#0d1424] border border-white/[0.08] rounded-3xl p-8 shadow-[0_32px_80px_rgba(0,0,0,0.5)]">
+        <div className="bg-[#0d1424] border border-white/[0.08] rounded-3xl p-10 shadow-[0_32px_80px_rgba(0,0,0,0.5)]">
 
           {/* Header */}
           <div className="flex flex-col items-center mb-8">
@@ -57,7 +57,7 @@ export default function AdminLogin() {
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="flex flex-col gap-4">
+          <form onSubmit={handleLogin} className="flex flex-col gap-5">
             {/* Email */}
             <div>
               <label className="text-xs font-semibold text-slate-400 mb-1.5 block uppercase tracking-wider">Email</label>
@@ -68,8 +68,8 @@ export default function AdminLogin() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="admin@mannlytics.com"
-                  className="w-full h-11 pl-10 pr-4 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-600 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                  placeholder="Enter your email"
+                  className="w-full h-12 pl-10 pr-4 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-700 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
                 />
               </div>
             </div>
@@ -84,10 +84,10 @@ export default function AdminLogin() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder="••••••••"
-                  className="w-full h-11 pl-10 pr-10 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-600 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                  placeholder="Enter your password"
+                  className="w-full h-12 pl-10 pr-10 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-700 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
                 />
-                <button type="button" onClick={() => setShowPw(p => !p)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition">
+                <button type="button" onClick={() => setShowPw(p => !p)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition bg-transparent border-none p-0">
                   {showPw ? <FaEyeSlash className="text-sm" /> : <FaEye className="text-sm" />}
                 </button>
               </div>
@@ -102,7 +102,7 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 mt-1 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm transition shadow-[0_8px_24px_rgba(99,102,241,0.35)] hover:shadow-[0_8px_28px_rgba(99,102,241,0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-12 mt-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm transition shadow-[0_8px_24px_rgba(99,102,241,0.35)] hover:shadow-[0_8px_28px_rgba(99,102,241,0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
