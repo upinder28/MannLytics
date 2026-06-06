@@ -393,7 +393,7 @@ function Dashboard() {
 
         {/* GREETING */}
         <div className="mb-6">
-          <h1 className={`text-xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold ${heading}`}>
+          <h1 className={`text-xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold break-words ${heading}`}>
             {greeting},{" "}
             <span className="bg-gradient-to-r from-indigo-500 to-cyan-400 bg-clip-text text-transparent">
               {currentUserName.split(" ")[0]}
@@ -437,7 +437,7 @@ function Dashboard() {
               highlightJournal ? "ring-4 ring-indigo-400 ring-offset-2 shadow-indigo-300/50 shadow-xl" : ""
             }`}>
               <div className="flex items-center justify-between mb-4">
-                <h2 className={`text-2xl font-extrabold ${heading}`}>💭 What's On Your Mind?</h2>
+                <h2 className={`text-lg sm:text-2xl font-extrabold ${heading}`}>💭 What's On Your Mind?</h2>
                 {journal && (
                   <button
                     onClick={() => { setJournal(""); setJournalError(false); setResult(null); }}
@@ -532,7 +532,7 @@ function Dashboard() {
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={() => navigate("/detailed-analysis", { state: { result, journal } })}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-md hover:shadow-xl hover:scale-105 transition"
+                    className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-md hover:shadow-xl hover:scale-105 transition"
                   >
                     View Detailed Analysis →
                   </button>
@@ -547,7 +547,7 @@ function Dashboard() {
                       }, 100);
                       setTimeout(() => setHighlightJournal(false), 3000);
                     }}
-                    className={`px-6 py-2.5 rounded-xl text-sm font-semibold border-2 border-indigo-500 transition hover:scale-105 ${
+                    className={`w-full sm:w-auto px-6 py-2.5 rounded-xl text-sm font-semibold border-2 border-indigo-500 transition hover:scale-105 ${
                       darkMode ? "text-indigo-300 bg-indigo-500/15 hover:bg-indigo-500/25" : "text-indigo-600 hover:bg-indigo-50"
                     }`}
                   >
@@ -556,7 +556,7 @@ function Dashboard() {
                   {result.riskScore >= 40 && (
                     <button
                       onClick={() => navigate("/support")}
-                      className={`px-6 py-2.5 rounded-xl text-xs md:text-sm font-semibold border transition hover:scale-105 ${darkMode ? "border-rose-400/40 bg-rose-500/10 text-rose-300" : "border-rose-200 bg-rose-50 text-rose-600"}`}
+                      className={`w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs md:text-sm font-semibold border transition hover:scale-105 ${darkMode ? "border-rose-400/40 bg-rose-500/10 text-rose-300" : "border-rose-200 bg-rose-50 text-rose-600"}`}
                     >
                       💙 Overwhelmed? View Support →
                     </button>
@@ -722,7 +722,7 @@ function Dashboard() {
       )}
 
       {/* FLOATING CALM CORNER BUTTON + POPUP — both mobile & desktop */}
-      <div className="fixed bottom-8 right-4 md:right-8 z-40">
+      <div className="fixed bottom-16 sm:bottom-8 right-4 md:right-8 z-40">
 
         {/* POPUP — positioned above button */}
         {showCalmPopup && (() => {
@@ -731,7 +731,7 @@ function Dashboard() {
             <div
               onMouseEnter={() => { if (popupTimerRef.current) clearTimeout(popupTimerRef.current); }}
               onMouseLeave={() => { popupTimerRef.current = setTimeout(() => setShowCalmPopup(false), 15000); }}
-              className={`calm-popup absolute bottom-full right-0 mb-4 flex flex-col gap-3 rounded-3xl shadow-2xl border p-6 w-80 max-w-[calc(100vw-1rem)] ${
+              className={`calm-popup absolute bottom-full right-0 mb-4 flex flex-col gap-3 rounded-3xl shadow-2xl border p-6 w-80 max-w-[calc(100vw-2rem)] ${
               darkMode ? "bg-gray-800 border-indigo-700/50" : "bg-white border-indigo-100"
             }`}>
               {/* AUTO DISMISS PROGRESS BAR */}

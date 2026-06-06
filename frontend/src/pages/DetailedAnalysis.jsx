@@ -474,7 +474,7 @@ function DetailedAnalysis() {
       <div className="pt-20 sm:pt-24 px-3 sm:px-6 lg:px-16 pb-12">
 
         {/* PAGE HEADER */}
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
           <div>
             <h1 className={`text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold ${heading}`}>
               <span className="bg-gradient-to-r from-indigo-500 to-cyan-400 bg-clip-text text-transparent">Detailed Analysis</span>{" "}🧠
@@ -485,7 +485,7 @@ function DetailedAnalysis() {
               <span className="font-medium">Confidence: {confidencePercent}%</span>
             </p>
           </div>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2 mt-1 shrink-0">
             <button
               onClick={() => navigate("/dashboard", { replace: true, state: { restoreResult: result, restoreJournal: journal } })}
               className={`px-3 py-2 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-1.5 transition ${
@@ -507,9 +507,9 @@ function DetailedAnalysis() {
         {predictedLabel === "Suicidal" && (
           <div className="rounded-2xl bg-red-600 text-white p-4 flex items-center gap-4 shadow-lg mb-6">
             <span className="text-3xl">🆘</span>
-            <div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0">
               <p className="font-bold text-sm">You are not alone. Immediate help is available.</p>
-              <p className="text-xs opacity-90 mt-1">iCall: 9152987821 &nbsp;&bull;&nbsp; Vandrevala Foundation: 1860-2662-345 (24/7)</p>
+              <p className="text-xs opacity-90 sm:mt-1">iCall: 9152987821 &nbsp;&bull;&nbsp; Vandrevala Foundation: 1860-2662-345 (24/7)</p>
             </div>
           </div>
         )}

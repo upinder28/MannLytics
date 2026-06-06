@@ -143,7 +143,7 @@ function Toast({ message, onClose }) {
     return () => clearTimeout(t);
   }, [onClose]);
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white px-5 py-3 rounded-2xl shadow-lg text-sm flex items-center gap-3 animate-bounce">
+    <div className="fixed bottom-16 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white px-5 py-3 rounded-2xl shadow-lg text-sm flex items-center gap-3 animate-bounce">
       <span>❌ {message}</span>
       <button onClick={onClose} className="font-bold">✕</button>
     </div>
@@ -632,7 +632,7 @@ function Chatbot() {
         {showScrollBtn && (
           <button
             onClick={scrollToBottom}
-            className="absolute bottom-20 md:bottom-24 right-4 md:right-6 z-10 flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition hover:bg-indigo-700 hover:scale-110"
+            className="absolute bottom-28 md:bottom-24 right-4 md:right-6 z-10 flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition hover:bg-indigo-700 hover:scale-110"
             title="Scroll to latest"
           >
             ↓

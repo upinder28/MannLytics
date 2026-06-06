@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import pic from "../assets/logo pic.png";
 import {
@@ -32,6 +32,12 @@ const NAV_LINKS = [
 export function AdminLayout({ children, collapsed, setCollapsed }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const overlayRef = useRef(null);
+
+  // Auto-collapse on mobile on mount
+  useEffect(() => {
+    if (window.innerWidth < 768) setCollapsed(true);
+  }, []);
 
   const logout = () => {
     sessionStorage.removeItem("adminLoggedIn");
@@ -39,11 +45,25 @@ export function AdminLayout({ children, collapsed, setCollapsed }) {
     navigate("/admin");
   };
 
+  // On mobile: sidebar is overlay when expanded
+  const isMobileOpen = !collapsed;
+
   return (
     <div className="min-h-screen bg-[#0a0f1e] text-white flex">
 
+      {/* Mobile overlay backdrop */}
+      {isMobileOpen && (
+        <div
+          ref={overlayRef}
+          className="fixed inset-0 z-40 bg-black/60 md:hidden"
+          onClick={() => setCollapsed(true)}
+        />
+      )}
+
       {/* SIDEBAR */}
-      <aside className={`fixed top-0 left-0 h-screen z-50 flex flex-col transition-all duration-300 ${collapsed ? "w-[68px]" : "w-60"} bg-[#0d1424] border-r border-white/[0.06]`}>
+      <aside className={`fixed top-0 left-0 h-screen z-50 flex flex-col transition-all duration-300 ${
+        collapsed ? "-translate-x-full md:translate-x-0 md:w-[68px]" : "translate-x-0 w-60"
+      } bg-[#0d1424] border-r border-white/[0.06]`}>
 
         {/* Logo */}
         <div className={`flex items-center gap-3 px-4 py-5 border-b border-white/[0.06] ${collapsed ? "justify-center" : ""}`}>
@@ -65,6 +85,7 @@ export function AdminLayout({ children, collapsed, setCollapsed }) {
                 key={path}
                 to={path}
                 title={collapsed ? label : ""}
+                onClick={() => { if (window.innerWidth < 768) setCollapsed(true); }}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${
                   active
                     ? "bg-indigo-600/90 text-white shadow-[0_4px_14px_rgba(99,102,241,0.35)]"
@@ -92,11 +113,11 @@ export function AdminLayout({ children, collapsed, setCollapsed }) {
         </div>
       </aside>
 
-      {/* MAIN */}
-      <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${collapsed ? "ml-[68px]" : "ml-60"}`}>
+      {/* MAIN — on mobile no margin, on desktop margin based on collapse */}
+      <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 md:${collapsed ? "ml-[68px]" : "ml-60"}`}>
 
         {/* Top bar */}
-        <header className="sticky top-0 z-40 flex items-center gap-4 px-6 py-3.5 bg-[#0a0f1e]/90 backdrop-blur border-b border-white/[0.06]">
+        <header className="sticky top-0 z-40 flex items-center gap-4 px-4 sm:px-6 py-3.5 bg-[#0a0f1e]/90 backdrop-blur border-b border-white/[0.06]">
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="text-slate-400 hover:text-white transition p-1.5 rounded-lg hover:bg-white/[0.06]"
@@ -111,7 +132,7 @@ export function AdminLayout({ children, collapsed, setCollapsed }) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-6 md:p-8">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-x-hidden">
           {children}
         </main>
       </div>
@@ -121,9 +142,9 @@ export function AdminLayout({ children, collapsed, setCollapsed }) {
 
 export function PageHeader({ title, subtitle, action }) {
   return (
-    <div className="flex items-start justify-between gap-4 mb-8">
+    <div className="flex flex-wrap items-start justify-between gap-3 mb-6 sm:mb-8">
       <div>
-        <h1 className="text-2xl font-extrabold text-white tracking-tight">{title}</h1>
+        <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">{title}</h1>
         {subtitle && <p className="text-slate-500 text-sm mt-1">{subtitle}</p>}
       </div>
       {action && <div className="flex-shrink-0">{action}</div>}

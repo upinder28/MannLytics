@@ -75,7 +75,7 @@ export default function AdminAnalytics() {
       ) : (
         <>
           {/* Summary pills */}
-          <div className="flex flex-wrap gap-3 mb-8">
+          <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
             {pills.map((p, i) => (
               <div key={i} className={`border rounded-xl px-4 py-2 text-xs font-semibold ${p.color}`}>
                 {p.label}: <span className="font-extrabold text-sm">{p.value}</span>
@@ -83,19 +83,19 @@ export default function AdminAnalytics() {
             ))}
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-5 mb-5">
-            <Card className="p-6">
+          <div className="grid lg:grid-cols-2 gap-4 sm:gap-5 mb-4 sm:mb-5">
+            <Card className="p-4 sm:p-6">
               <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">🎭 Emotion Distribution</p>
-              <div className="h-56">
+              <div className="h-48 sm:h-56">
                 {emotionLabels.length > 0
                   ? <Bar data={emotionBarData} options={baseOpts} />
                   : <div className="h-full flex items-center justify-center text-slate-600 text-sm">No data yet</div>}
               </div>
             </Card>
 
-            <Card className="p-6">
+            <Card className="p-4 sm:p-6">
               <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">⚠️ Risk Level Breakdown</p>
-              <div className="h-56">
+              <div className="h-48 sm:h-56">
                 {(analytics?.totalJournals || 0) > 0
                   ? <Doughnut data={riskDoughnutData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { color: "#64748b", padding: 16, font: { size: 11 } } }, tooltip: TOOLTIP } }} />
                   : <div className="h-full flex items-center justify-center text-slate-600 text-sm">No data yet</div>}
@@ -103,9 +103,9 @@ export default function AdminAnalytics() {
             </Card>
           </div>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">📈 Daily Entries — Last 7 Days</p>
-            <div className="h-52">
+            <div className="h-44 sm:h-52">
               <Line data={lineData} options={{ ...baseOpts, scales: { x: { ticks: TICKS, grid: GRID }, y: { ticks: { ...TICKS, stepSize: 1 }, grid: GRID } } }} />
             </div>
           </Card>

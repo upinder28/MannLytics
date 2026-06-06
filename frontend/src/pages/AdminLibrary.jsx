@@ -55,7 +55,7 @@ function ArticleModal({ initial, onClose, onSave }) {
           <button onClick={onClose} className="text-slate-500 hover:text-white transition p-1"><FaTimes /></button>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Title *">
             <input value={form.title} onChange={e => set("title", e.target.value)} placeholder="e.g. Depression" className={`${inputCls} h-10`} />
           </Field>

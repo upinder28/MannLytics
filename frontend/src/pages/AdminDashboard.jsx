@@ -43,11 +43,11 @@ export default function AdminDashboard() {
       ) : (
         <>
           {/* Stat Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             {statCards.map((c, i) => <StatCard key={i} {...c} />)}
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-5">
+          <div className="grid lg:grid-cols-2 gap-4 sm:gap-5">
             {/* Emotion Breakdown */}
             <Card className="p-6">
               <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">🎭 Emotion Breakdown</p>
@@ -83,7 +83,7 @@ export default function AdminDashboard() {
                   {recentJournals.map((entry, i) => (
                     <li key={i} className="flex items-center justify-between bg-white/[0.03] border border-white/[0.05] px-3 py-2.5 rounded-xl">
                       <div>
-                        <p className="text-slate-300 text-xs font-medium truncate max-w-[160px]">{entry.userId}</p>
+                        <p className="text-slate-300 text-xs font-medium truncate max-w-[120px] sm:max-w-[160px]">{entry.userId}</p>
                         <p className="text-slate-600 text-xs mt-0.5">
                           {new Date(entry.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                         </p>
@@ -100,7 +100,7 @@ export default function AdminDashboard() {
             {/* Risk Distribution */}
             <Card className="p-6 lg:col-span-2">
               <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-5">⚠️ Risk Distribution</p>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[
                   { label: "Low Risk",      value: analytics?.riskStats?.lowRisk      ?? 0, color: "text-emerald-400", bg: "bg-emerald-500/10", bar: "bg-emerald-500" },
                   { label: "Moderate Risk", value: analytics?.riskStats?.moderateRisk ?? 0, color: "text-amber-400",   bg: "bg-amber-500/10",   bar: "bg-amber-500"   },
