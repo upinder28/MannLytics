@@ -55,7 +55,10 @@ router.post("/analyze", async (req, res) => {
       return res.status(400).json({ message: "Text is required" });
     }
 
-    const mlResponse = await axios.post("http://127.0.0.1:8000/analyze", { text });
+    const mlResponse = await axios.post(
+  "https://upinderyashika12-manlytics-ml.hf.space/analyze",
+  { text }
+);
     const analysis = mlResponse.data;
 
     const journal = new Journal({
