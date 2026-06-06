@@ -58,17 +58,9 @@ app.use(
   })
 );
 
-app.options("*", cors());
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-      callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-  })
-);
+
+
 
 // 🔥 Middlewares
 app.use(express.json());
