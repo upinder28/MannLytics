@@ -119,7 +119,7 @@ function Login() {
   };
 
   return (
-    <div className={`h-screen overflow-hidden font-[Poppins,sans-serif] ${dm ? "bg-[#111827]" : "bg-[#f8fafc]"}`}>
+    <div className={`h-screen overflow-y-auto font-[Poppins,sans-serif] ${dm ? "bg-[#111827]" : "bg-[#f8fafc]"}`}>
 
       {/* HEADER */}
       <header

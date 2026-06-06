@@ -994,7 +994,7 @@ export default function MentalHealthLibrary() {
     <div className={`min-h-screen ${bg}`}>
       <AppNavbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
 
-      <div className="px-3 pb-16 pt-28 sm:px-5 lg:px-6 2xl:px-10">
+      <div className="px-3 pb-16 pt-20 sm:pt-28 sm:px-5 lg:px-6 2xl:px-10">
         <div className="w-full">
           <motion.section
             initial={{ opacity: 0, y: 18 }}
@@ -1003,11 +1003,9 @@ export default function MentalHealthLibrary() {
             className={`relative overflow-hidden rounded-[32px] border p-6 md:p-8 xl:p-10 ${panel}`}
           >
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(14,165,233,0.16),_transparent_26%),radial-gradient(circle_at_bottom_left,_rgba(99,102,241,0.16),_transparent_30%)]" />
-            <div className="relative grid gap-8 xl:grid-cols-[1.45fr_0.8fr] items-start">
+            <div className="relative grid gap-6 xl:grid-cols-[1.45fr_0.8fr] items-start">
               <div>
-
-
-                <h1 className={`max-w-5xl text-4xl font-black leading-tight md:text-5xl 2xl:text-6xl ${heading}`}>
+                <h1 className={`text-2xl sm:text-4xl font-black leading-tight md:text-5xl 2xl:text-6xl ${heading}`}>
                   What are you{" "}
                   <HeroTypewriter
                     words={["feeling today?", "going through?", "curious about?", "trying to understand?"]}
@@ -1022,8 +1020,8 @@ export default function MentalHealthLibrary() {
 
               </div>
 
-              <div className="space-y-8">
-              <div className="flex gap-10 mb-4 justify-start pl-24">
+              <div className="space-y-4">
+              <div className="flex gap-4 mb-2 flex-wrap">
                 <TopStat icon={FaBookOpen} label="Topics" value={CONDITIONS.length} darkMode={darkMode} />
                 <TopStat icon={FaLeaf} label="Saved" value={savedItems.length} darkMode={darkMode} />
               </div>
@@ -1676,7 +1674,7 @@ function HeroTypewriter({ words, darkMode }) {
 
 function TopStat({ icon: Icon, label, value, darkMode }) {
   return (
-    <div className={`w-36 rounded-xl border px-4 py-3.5 ${
+    <div className={`w-28 sm:w-36 rounded-xl border px-3 sm:px-4 py-3 ${
       darkMode ? "border-slate-800 bg-slate-950/80" : "border-white bg-white/85"
     }`}>
       <div className="flex flex-col items-center gap-1">

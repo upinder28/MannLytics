@@ -471,12 +471,12 @@ function DetailedAnalysis() {
 
   return (
     <div className={`min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-gradient-to-br from-indigo-50 via-white to-indigo-100"}`}>
-      <div className="pt-8 px-4 md:px-8 lg:px-16 pb-12">
+      <div className="pt-20 sm:pt-24 px-3 sm:px-6 lg:px-16 pb-12">
 
         {/* PAGE HEADER */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className={`text-3xl md:text-5xl lg:text-6xl font-extrabold ${heading}`}>
+            <h1 className={`text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold ${heading}`}>
               <span className="bg-gradient-to-r from-indigo-500 to-cyan-400 bg-clip-text text-transparent">Detailed Analysis</span>{" "}🧠
             </h1>
             <p className={`text-sm md:text-base lg:text-lg mt-2 ${muted}`}>

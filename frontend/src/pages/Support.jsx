@@ -152,7 +152,7 @@ export default function Support() {
     : "bg-gradient-to-br from-blue-50 via-indigo-50 to-sky-100 text-slate-800";
 
   return (
-    <div className={`min-h-screen w-full overflow-x-hidden pt-24 ${pageBg}`}>
+    <div className={`min-h-screen overflow-y-auto w-full overflow-x-hidden pt-24 ${pageBg}`}>
 
       {/* fix 1 — scroll to top */}
       {showScrollTop && (

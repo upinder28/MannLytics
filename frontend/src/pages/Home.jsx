@@ -263,7 +263,7 @@ export default function Home() {
       <section
         id="home"
         data-reveal
-        className={`grid w-full gap-14 px-6 py-10 transition-all duration-1000 md:grid-cols-2 md:px-10 md:py-14 xl:px-16 2xl:px-24 ${revealClass(
+        className={`grid w-full gap-8 px-4 py-8 transition-all duration-1000 md:grid-cols-2 md:px-10 md:py-14 xl:px-16 2xl:px-24 ${revealClass(
           "home"
         )}`}
       >
@@ -276,7 +276,7 @@ export default function Home() {
           </div>
 
           <h1
-            className={`max-w-2xl text-5xl font-bold leading-[1.2] tracking-tight md:text-6xl ${headingText}`}
+            className={`max-w-2xl text-3xl font-bold leading-[1.2] tracking-tight sm:text-4xl md:text-5xl lg:text-6xl ${headingText}`}
           >
             <span className="inline-block animate-fade-in-up" style={{ animationDelay: "0.1s", animationFillMode: "both" }}>
               Your Mind Speaks Every Day.
@@ -366,7 +366,7 @@ export default function Home() {
               <img
                 src={picdetect}
                 alt="AI mental health analysis"
-                className="h-[320px] md:h-[560px] w-full rounded-[1.5rem] object-cover transition duration-700 hover:scale-105"
+                className="h-[220px] sm:h-[320px] md:h-[480px] w-full rounded-[1.5rem] object-cover transition duration-700 hover:scale-105"
               />
 
               <div

@@ -4,7 +4,6 @@ import meditationImg from "../assets/Relaxing.png";
 import { useNavigate } from "react-router-dom";
 import {
   FaArrowLeft,
-  FaBell,
   FaChess,
   FaGamepad,
   FaHeadphones,
@@ -703,50 +702,15 @@ function SafeSpace() {
     return getFilteredItems(cat).length > 0;
   });
 
-  const [bellOpen, setBellOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [notifications, setNotifications] = useState([]);
-  const bellRef = useRef(null);
   const dropdownRef = useRef(null);
   const currentUserEmail = sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser") || "";
   const currentUserName = sessionStorage.getItem("currentUserName") || localStorage.getItem("currentUserName") || "User";
-  const [profilePic, setProfilePic] = useState(localStorage.getItem(`profilePic_${currentUserEmail}`) || "");
-
-  useEffect(() => {
-    const sync = () => setProfilePic(localStorage.getItem(`profilePic_${currentUserEmail}`) || "");
-    window.addEventListener("profileUpdate", sync);
-    return () => window.removeEventListener("profileUpdate", sync);
-  }, []);
-
-  useEffect(() => {
-    if (!currentUserEmail) return;
-    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/user/${currentUserEmail}`)
-      .then(r => r.json())
-      .then(data => {
-        const notifEnabled = data.notifications ?? true;
-        const history = JSON.parse(localStorage.getItem(`moodHistory_${currentUserEmail}`)) || [];
-        if (!notifEnabled || history.length === 0) return;
-        const lastEntry = history[history.length - 1];
-        const lastEmo = (lastEntry?.emotion || "").toLowerCase();
-        const streak = parseInt(localStorage.getItem(`journalStreak_${currentUserEmail}`) || "0");
-        const daysSinceLast = lastEntry ? Math.floor((Date.now() - new Date(lastEntry.createdAt)) / 86400000) : null;
-        const msgs = [];
-        msgs.push({ id: 1, text: "Hope you're doing okay. Want to share how you feel today? 🌿" });
-        if (["joy","happiness"].includes(lastEmo)) msgs.push({ id: 2, text: "You seem in a good place lately 🌟 Keep it up!" });
-        else if (["sad","sadness"].includes(lastEmo)) msgs.push({ id: 3, text: "Feeling low is okay. Be gentle with yourself today 💜" });
-        else if (["anxiety","stress"].includes(lastEmo)) msgs.push({ id: 4, text: "Try a slow deep breath right now. You've got this 🌬️" });
-        if (daysSinceLast !== null && daysSinceLast >= 4) msgs.push({ id: 5, text: "It's been a while. We're here if you need to talk 💚" });
-        if (streak >= 7) msgs.push({ id: 6, text: `${streak}-day streak! You're building a powerful habit 🔥` });
-        else if (streak >= 3) msgs.push({ id: 7, text: `${streak} days in a row 🌟 You're doing great!` });
-        setNotifications(msgs);
-      }).catch(() => {});
-  }, [currentUserEmail]);
 
   useEffect(() => {
     const handleOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setOpenDropdown(false);
-      if (bellRef.current && !bellRef.current.contains(e.target)) setBellOpen(false);
     };
     document.addEventListener("mousedown", handleOutside);
     return () => document.removeEventListener("mousedown", handleOutside);
@@ -756,7 +720,7 @@ function SafeSpace() {
     <div className="flex min-h-screen">
 
       {/* ── Side Navbar ─────────────────────────────────────────────────── */}
-      <aside className={`fixed left-0 top-0 z-40 h-full flex flex-col transition-all duration-300 ${
+      <aside className={`fixed left-0 top-0 z-40 h-full flex-col transition-all duration-300 hidden lg:flex ${
         sidebarOpen ? "w-64" : "w-16"
       } ${
         darkMode
@@ -839,9 +803,9 @@ function SafeSpace() {
       {/* ── Main Content ─────────────────────────────────────────────────── */}
       <div
         ref={containerRef}
-        className={`flex-1 relative min-h-screen overflow-x-hidden overflow-y-auto transition-all duration-300 ${
+        className={`flex-1 relative min-h-screen overflow-x-hidden overflow-y-auto transition-all duration-300 lg:${
           sidebarOpen ? "ml-64" : "ml-16"
-        } ${
+        } ml-0 ${
         darkMode
           ? "bg-[linear-gradient(180deg,#0f172a_0%,#111827_45%,#0b1220_100%)] text-slate-100"
           : "bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.16),transparent_26%),linear-gradient(180deg,#f1f5ff_0%,#f8faff_38%,#eef2ff_68%,#f7f9ff_100%)] text-slate-900"
@@ -849,125 +813,95 @@ function SafeSpace() {
       >
 
 
-      <div className="w-full px-6 py-8">
-        <div
-          className={`mb-7 flex items-center justify-between section-anim`}
-          style={{ "--revealDelay": "0ms", "--floatDelay": "0ms" }}
-        >
+      <div className="w-full px-3 sm:px-6 py-4 sm:py-8">
+        {/* TOP BAR */}
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <button
             onClick={() => navigate("/dashboard")}
-            className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-medium shadow-sm transition hover:-translate-y-0.5 ${
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium shadow-sm transition hover:-translate-y-0.5 self-start ${
               darkMode
                 ? "border border-slate-600 bg-slate-800/80 text-slate-100 hover:bg-slate-700"
                 : "border border-indigo-200/80 bg-white/80 text-indigo-600 hover:bg-white"
             }`}
           >
-            <FaArrowLeft />
-            Back to Dashboard
+            <FaArrowLeft /> Back to Dashboard
           </button>
 
-          {/* Right side: search + notifications + avatar */}
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-2 sm:gap-4">
             {/* Search */}
-            <div className="relative">
-              <FaSearch className={`pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm ${
+            <div className="relative flex-1 sm:flex-none">
+              <FaSearch className={`pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm ${
                 darkMode ? "text-slate-400" : "text-indigo-400"
               }`} />
               <input
                 value={query}
                 onChange={(e) => { setQuery(e.target.value); if (e.target.value.trim()) setActiveCategory("all"); }}
-                placeholder="Search activities..."
-                className={`rounded-full border pl-11 pr-5 py-3 text-base outline-none transition w-56 focus:w-76 ${
+                placeholder="Search..."
+                className={`rounded-full border pl-9 pr-4 py-2 text-sm outline-none w-full sm:w-44 ${
                   darkMode
-                    ? "border-slate-600 bg-slate-800/80 text-slate-100 placeholder:text-slate-400 focus:border-indigo-400"
-                    : "border-indigo-200 bg-white/80 text-slate-900 placeholder:text-slate-400 focus:border-indigo-300"
+                    ? "border-slate-600 bg-slate-800/80 text-slate-100 placeholder:text-slate-400"
+                    : "border-indigo-200 bg-white/80 text-slate-900 placeholder:text-slate-400"
                 }`}
               />
             </div>
 
-            {/* Notification bell */}
-            <div className="relative" ref={bellRef}>
-              <button
-                onClick={() => setBellOpen(p => !p)}
-                className={`relative h-13 w-13 flex items-center justify-center rounded-full border transition ${
-                  darkMode ? "bg-gray-800 border-gray-600 text-gray-300 hover:text-white" : "bg-white border-indigo-200 text-indigo-600"
-                }`}
-              >
-                <FaBell size={20} />
-                {notifications.length > 0 && <span className="absolute top-2.5 right-2.5 h-2.5 w-2.5 rounded-full bg-rose-500" />}
-              </button>
-              {bellOpen && (
-                <div className={`absolute right-0 mt-3 w-80 rounded-2xl shadow-2xl border p-3 z-50 ${
-                  darkMode ? "bg-gray-800 border-gray-700 text-gray-200" : "bg-white border-indigo-100 text-gray-800"
-                }`}>
-                  <p className="text-xs font-semibold uppercase tracking-widest mb-3 px-1 text-gray-400">Notifications</p>
-                  {notifications.length === 0
-                    ? <p className="text-sm text-gray-400 px-1 py-2">No notifications yet.</p>
-                    : <ul className="space-y-2 max-h-72 overflow-y-auto">
-                        {notifications.map(n => (
-                          <li key={n.id} className={`text-sm px-3 py-2.5 rounded-xl leading-relaxed ${
-                            darkMode ? "bg-gray-700/60" : "bg-indigo-50"
-                          }`}>{n.text}</li>
-                        ))}
-                      </ul>
-                  }
-                </div>
-              )}
-            </div>
-
-            {/* Avatar with dropdown */}
+            {/* Avatar */}
             <div className="relative" ref={dropdownRef}>
               <div
                 onClick={() => setOpenDropdown(p => !p)}
-                className="h-12 w-12 rounded-full flex items-center justify-center text-white font-bold cursor-pointer shadow-md overflow-hidden text-base"
+                className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold cursor-pointer shadow-md text-sm"
                 style={{ background: "linear-gradient(135deg, #4f46e5, #06b6d4)" }}
               >
                 {currentUserName?.charAt(0)?.toUpperCase()}
               </div>
               {openDropdown && (
-                <div className={`absolute right-0 mt-3 w-60 rounded-2xl shadow-2xl border p-2 z-50 ${
+                <div className={`absolute right-0 mt-3 w-56 rounded-2xl shadow-2xl border p-2 z-50 ${
                   darkMode ? "bg-gray-800 border-gray-700 text-gray-200" : "bg-white border-indigo-100 text-gray-800"
                 }`}>
-                  <div className={`px-4 py-3 border-b ${
-                    darkMode ? "border-gray-700" : "border-gray-100"
-                  }`}>
+                  <div className={`px-4 py-3 border-b ${ darkMode ? "border-gray-700" : "border-gray-100" }`}>
                     <p className="font-semibold text-sm">{currentUserName}</p>
                     <p className="text-xs opacity-70 truncate">{currentUserEmail}</p>
                   </div>
                   <div className="py-2 space-y-1">
-                    <button onClick={() => { setOpenDropdown(false); navigate("/profile"); }} style={{ backgroundColor: "transparent" }} className={`flex items-center gap-3 px-4 py-2 rounded-lg w-full text-left text-sm ${
-                      darkMode ? "hover:bg-gray-700" : "hover:bg-indigo-50"
-                    }`}>👤 Profile</button>
-                    <button onClick={() => { setOpenDropdown(false); navigate("/settings"); }} style={{ backgroundColor: "transparent" }} className={`flex items-center gap-3 px-4 py-2 rounded-lg w-full text-left text-sm ${
-                      darkMode ? "hover:bg-gray-700" : "hover:bg-indigo-50"
-                    }`}>⚙️ Settings</button>
+                    <button onClick={() => { setOpenDropdown(false); navigate("/profile"); }} style={{ backgroundColor: "transparent" }} className={`flex items-center gap-3 px-4 py-2 rounded-lg w-full text-left text-sm ${ darkMode ? "hover:bg-gray-700" : "hover:bg-indigo-50" }`}>👤 Profile</button>
+                    <button onClick={() => { setOpenDropdown(false); navigate("/settings"); }} style={{ backgroundColor: "transparent" }} className={`flex items-center gap-3 px-4 py-2 rounded-lg w-full text-left text-sm ${ darkMode ? "hover:bg-gray-700" : "hover:bg-indigo-50" }`}>⚙️ Settings</button>
                   </div>
-                  <div className={`border-t pt-2 ${
-                    darkMode ? "border-gray-700" : "border-gray-100"
-                  }`}>
-                    <button
-                      onClick={() => {
-                        sessionStorage.removeItem("token");
-                        sessionStorage.removeItem("currentUser");
-                        sessionStorage.removeItem("currentUserName");
-                        localStorage.removeItem("currentUser");
-                        localStorage.removeItem("currentUserName");
-                        setOpenDropdown(false);
-                        window.dispatchEvent(new Event("userLogout"));
-                        navigate("/");
-                      }}
-                      style={{ backgroundColor: "transparent" }}
-                      className={`w-full flex items-center gap-3 px-4 py-2 text-left text-sm text-red-500 rounded-lg ${
-                        darkMode ? "hover:bg-red-900/30" : "hover:bg-red-50"
-                      }`}
-                    >
-                      🚪 Logout
-                    </button>
+                  <div className={`border-t pt-2 ${ darkMode ? "border-gray-700" : "border-gray-100" }`}>
+                    <button onClick={() => { sessionStorage.removeItem("token"); sessionStorage.removeItem("currentUser"); sessionStorage.removeItem("currentUserName"); localStorage.removeItem("currentUser"); localStorage.removeItem("currentUserName"); setOpenDropdown(false); window.dispatchEvent(new Event("userLogout")); navigate("/"); }} style={{ backgroundColor: "transparent" }} className={`w-full flex items-center gap-3 px-4 py-2 text-left text-sm text-red-500 rounded-lg ${ darkMode ? "hover:bg-red-900/30" : "hover:bg-red-50" }`}>🚪 Logout</button>
                   </div>
                 </div>
               )}
             </div>
           </div>
+        </div>
+
+        {/* MOBILE CATEGORY CHIPS */}
+        <div className="lg:hidden flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+          <button
+            onClick={() => setActiveCategory("all")}
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+              activeCategory === "all"
+                ? "bg-indigo-600 text-white"
+                : darkMode ? "bg-slate-800 text-slate-300 border border-slate-700" : "bg-white text-slate-600 border border-indigo-100"
+            }`}
+          >All</button>
+          {categories.map((cat) => {
+            const Icon = sectionMeta[cat].icon;
+            return (
+              <button
+                key={cat}
+                onClick={() => scrollToSection(cat)}
+                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+                  activeCategory === cat
+                    ? "bg-indigo-600 text-white"
+                    : darkMode ? "bg-slate-800 text-slate-300 border border-slate-700" : "bg-white text-slate-600 border border-indigo-100"
+                }`}
+              >
+                <Icon className="text-[10px]" />
+                {sectionMeta[cat].title}
+              </button>
+            );
+          })}
         </div>
 
         <section className={`hero-soft relative mb-6 overflow-hidden rounded-3xl border shadow-[0_8px_32px_rgba(99,102,241,0.10)] ${
@@ -978,33 +912,31 @@ function SafeSpace() {
 
           {/* Background image on right side */}
           <div className="absolute inset-0">
-            <img src={meditationImg} alt="" className="absolute right-0 top-0 h-full w-auto object-cover opacity-100" style={{transform: 'translateX(-160px)'}} />
+            <img src={meditationImg} alt="" className="absolute inset-0 h-full w-full object-cover object-right opacity-100 sm:w-auto sm:right-0 sm:left-auto" style={{transform: 'sm:translateX(-160px)'}} />
+            <div className="absolute inset-0 bg-black/50 sm:hidden" />
             <div className={`absolute inset-0 ${
               darkMode
-                ? "bg-gradient-to-r from-[#1e293b] from-20% via-[#1e293b]/50 to-transparent"
-                : "bg-gradient-to-r from-[#818cf8] from-10% via-[#3b82f6]/70 via-40% to-[#7dd3fc]/20"
+                ? "bg-gradient-to-r from-[#1e293b] via-[#1e293b]/80 to-[#1e293b]/40"
+                : "bg-gradient-to-r from-[#818cf8] via-[#3b82f6]/80 to-[#7dd3fc]/30"
             }`} />
           </div>
 
-          <div className="relative px-6 py-5 md:px-10 md:py-6 w-4/5 ml-16">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-4 py-1.5 text-sm text-white/90 backdrop-blur-xl">
+          <div className="relative px-4 py-5 sm:px-8 sm:py-6 md:px-10 md:py-8">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-xs sm:text-sm text-white/90 backdrop-blur-xl">
               🌿 Calm Corner
             </div>
-
-            <h1 className="mt-4 text-3xl font-black leading-tight md:text-5xl text-white">
+            <h1 className="mt-3 text-xl sm:text-3xl md:text-4xl font-black leading-tight text-white max-w-lg">
               Your calm recovery zone
             </h1>
-
-            <p className="mt-4 max-w-xl text-base leading-7 text-white/90 md:text-lg">
-              Slow down with soothing music, guided meditation, grounding therapy, playful mini breaks, breathing exercises, and uplifting support — all in one place.
+            <p className="mt-3 max-w-sm sm:max-w-md text-sm sm:text-base leading-6 text-white/85">
+              Soothing music, meditation, breathing exercises, and uplifting support — all in one place.
             </p>
-
             <button
               onClick={() => setShowBreathing(p => !p)}
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/20 border border-white/30 backdrop-blur-sm px-6 py-3 text-sm font-semibold text-white hover:bg-white/30 transition duration-300"
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/20 border border-white/30 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 text-sm font-semibold text-white hover:bg-white/30 transition duration-300"
             >
               Start Relaxing
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
             </button>
           </div>
         </section>
