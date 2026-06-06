@@ -48,6 +48,7 @@ async function autoSeedLibrary() {
 // 🔥 CORS CONFIG
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://mann-lytics.vercel.app",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 

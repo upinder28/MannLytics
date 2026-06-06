@@ -199,8 +199,8 @@ app = FastAPI()
 
 _saved = joblib.load("mental_health_model.joblib")
 _device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-_tokenizer = AutoTokenizer.from_pretrained(_saved["model_path"])
-_model = AutoModelForSequenceClassification.from_pretrained(_saved["model_path"]).to(_device)
+_tokenizer = AutoTokenizer.from_pretrained("/app/roberta_model", local_files_only=True)
+_model = AutoModelForSequenceClassification.from_pretrained("/app/roberta_model", local_files_only=True).to(_device)
 _model.eval()
 _id2label = {int(k): v for k, v in _saved["id2label"].items()}
 
