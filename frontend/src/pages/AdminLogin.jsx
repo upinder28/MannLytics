@@ -43,7 +43,7 @@ export default function AdminLogin() {
 
       <div className="relative w-full max-w-[480px]">
         {/* Card */}
-        <div className="bg-[#0d1424] border border-white/[0.08] rounded-3xl p-10 shadow-[0_32px_80px_rgba(0,0,0,0.5)]">
+        <div className="bg-[#0d1424] border border-white/[0.08] rounded-3xl p-6 sm:p-10 shadow-[0_32px_80px_rgba(0,0,0,0.5)]">
 
           {/* Header */}
           <div className="flex flex-col items-center mb-8">

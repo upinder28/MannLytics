@@ -143,7 +143,7 @@ function Signup() {
       </header>
 
       {/* BODY */}
-      <div className="flex h-[calc(100vh-80px)] mt-20">
+      <div className="flex min-h-[calc(100vh-80px)] mt-20">
 
         {/* LEFT IMAGE — hidden on mobile */}
         <div className="hidden md:flex flex-[1.1] relative overflow-hidden" style={{ background: dm ? "#0f172a" : "linear-gradient(135deg,#eef2ff 0%,#e0e7ff 100%)" }}>

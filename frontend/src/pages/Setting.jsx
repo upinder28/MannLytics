@@ -162,7 +162,7 @@ try {
     <div className={`w-full ${ darkMode ? "bg-gray-800 text-white" : "bg-white" } rounded-3xl flex flex-col max-h-[90vh]`}>
 
         {/* HEADER — sticky, never scrolls */}
-        <div className={`flex justify-between items-center px-8 pt-8 pb-4 border-b flex-shrink-0 ${
+        <div className={`flex justify-between items-center px-4 sm:px-8 pt-8 pb-4 border-b flex-shrink-0 ${
           darkMode ? "border-gray-700 bg-gray-800" : "border-gray-100 bg-white"
         } rounded-t-3xl`}>
           <div>
@@ -180,7 +180,7 @@ try {
         </div>
 
         {/* SCROLLABLE CONTENT ONLY */}
-        <div className="px-8 py-6 space-y-6 overflow-y-auto flex-1">
+        <div className="px-4 sm:px-8 py-6 space-y-6 overflow-y-auto flex-1">
 
         {/* PROFILE SECTION */}
 <div className={`p-5 border rounded-xl ${ darkMode ? "border-gray-600" : "" }`}>

@@ -71,7 +71,7 @@ export default function AdminUsers() {
       />
 
       {/* Search */}
-      <div className="relative mb-6 max-w-sm">
+      <div className="relative mb-6 w-full sm:max-w-sm">
         <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600 text-xs" />
         <input
           value={search}
@@ -102,20 +102,21 @@ export default function AdminUsers() {
               <Card key={user._id} className="overflow-hidden">
                 {/* User row */}
                 <div className="flex items-center justify-between px-5 py-4">
-                  <div className="flex items-center gap-4 flex-1 cursor-pointer min-w-0" onClick={() => setExpandedUser(isExpanded ? null : user._id)}>
+                  <div className="flex items-center gap-3 flex-1 cursor-pointer min-w-0" onClick={() => setExpandedUser(isExpanded ? null : user._id)}>
                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 overflow-hidden">
                       {user.photo ? <img src={user.photo} className="w-full h-full object-cover" /> : (user.name || user.email).charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-white truncate">{user.name || "—"}</p>
                       <p className="text-xs text-slate-500 truncate">{user.email}</p>
-                      <p className="text-xs text-slate-600 mt-0.5">
+                      <p className="text-xs text-slate-600 mt-0.5 hidden sm:block">
                         {journals.length} {journals.length === 1 ? "entry" : "entries"} · Joined {new Date(user.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                       </p>
+                      <p className="text-xs text-slate-600 mt-0.5 sm:hidden">{journals.length} entries</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     {lastJournal && (
                       <span className={`text-xs px-2.5 py-1 rounded-full capitalize font-semibold hidden sm:block ${emotionColor(lastJournal.analysis?.emotion)}`}>
                         {lastJournal.analysis?.emotion || "unknown"}
@@ -127,9 +128,9 @@ export default function AdminUsers() {
                     </div>
                     <button
                       onClick={() => setConfirmDelete({ type: "user", id: user._id, message: `Delete "${user.name || user.email}"? This will also delete all their journal entries.` })}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition text-xs font-semibold"
+                      className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition text-xs font-semibold"
                     >
-                      <FaTrash size={10} /> Delete
+                      <FaTrash size={10} /> <span className="hidden sm:inline">Delete</span>
                     </button>
                     <button onClick={() => setExpandedUser(isExpanded ? null : user._id)} className="text-slate-500 hover:text-white transition p-1">
                       {isExpanded ? <FaChevronUp className="text-xs" /> : <FaChevronDown className="text-xs" />}

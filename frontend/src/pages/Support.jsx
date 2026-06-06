@@ -158,7 +158,7 @@ export default function Support() {
       {showScrollTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-8 right-8 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400 text-white shadow-lg transition-all duration-300 hover:scale-110"
+          className="fixed bottom-16 sm:bottom-8 right-8 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400 text-white shadow-lg transition-all duration-300 hover:scale-110"
         >
           ↑
         </button>
@@ -182,7 +182,7 @@ export default function Support() {
         <div className="grid items-center gap-16 md:grid-cols-2">
           {/* Left */}
           <div className="flex flex-col justify-center">
-            <h1 className={`text-4xl font-bold leading-tight md:text-5xl ${headingText}`}>
+            <h1 className={`text-3xl font-bold leading-tight md:text-4xl xl:text-5xl ${headingText}`}>
               Mental Health Support & Resources
             </h1>
             <p className={`mt-6 text-lg leading-8 ${mutedText}`}>
@@ -193,7 +193,7 @@ export default function Support() {
           {/* Right — image */}
           <div className="relative flex items-center justify-center">
             <div className={`absolute -left-5 top-8 h-24 w-24 rounded-full blur-2xl ${darkMode ? "bg-indigo-900/25" : "bg-blue-200/50"}`} />
-            <div className={`relative w-[75%] rounded-[1.8rem] border p-[6px] shadow-[0_25px_60px_rgba(99,102,241,0.16)] animate-float ${darkMode ? "border-gray-700 bg-gray-800/75" : "border-white/80 bg-white/75"}`}>
+            <div className={`relative w-full sm:w-[75%] rounded-[1.8rem] border p-[6px] shadow-[0_25px_60px_rgba(99,102,241,0.16)] animate-float ${darkMode ? "border-gray-700 bg-gray-800/75" : "border-white/80 bg-white/75"}`}>
               <div className="overflow-hidden rounded-[1.4rem]">
                 <img
                   src={supportImg}

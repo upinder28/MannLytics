@@ -232,7 +232,7 @@ export default function Home() {
       {showScrollTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-8 right-8 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400 text-white shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-indigo-400/50 animate-fade-in-up"
+          className="fixed bottom-16 sm:bottom-8 right-8 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400 text-white shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-indigo-400/50 animate-fade-in-up"
         >
           ↑
         </button>
@@ -290,8 +290,7 @@ export default function Home() {
             Just write what's on your mind. Mannlytics analyzes your emotions, detects patterns, and guides you toward better mental wellbeing.
           </p>
 
-          <div className="mt-8 flex flex-col gap-3 animate-fade-in-up" style={{ animationDelay: "0.7s", animationFillMode: "both" }}>
-            <div className="flex flex-wrap gap-4">
+          <div className="mt-8 flex flex-wrap gap-3 animate-fade-in-up" style={{ animationDelay: "0.7s", animationFillMode: "both" }}>
             {!currentUser ? (
               <>
                 <Link
@@ -321,8 +320,6 @@ export default function Home() {
                 <FaArrowRight className="transition group-hover:translate-x-1" />
               </button>
             )}
-            </div>
-            <div>
             <button
               onClick={() => document.querySelector("#features")?.scrollIntoView({ behavior: "smooth" })}
               className={`rounded-full border px-7 py-3.5 font-medium transition duration-300 hover:-translate-y-1 ${
@@ -333,13 +330,12 @@ export default function Home() {
             >
               See How It Works ↓
             </button>
-            </div>
           </div>
         </div>
 
         <div className="relative flex items-center justify-center">
           <div className="relative w-full max-w-2xl pt-16">
-            <div className="absolute right-8 top-0 z-20 block">
+            <div className="absolute right-2 sm:right-8 top-0 z-20 block">
               <div
                 className={`flex items-center gap-2 rounded-full px-4 py-2 shadow-xl animate-[float_1.8s_ease-in-out_infinite] ${
                   darkMode ? "bg-gray-800 text-white" : "bg-white/85 text-slate-700"
@@ -366,20 +362,20 @@ export default function Home() {
               <img
                 src={picdetect}
                 alt="AI mental health analysis"
-                className="h-[220px] sm:h-[320px] md:h-[480px] w-full rounded-[1.5rem] object-cover transition duration-700 hover:scale-105"
+                className="h-[260px] sm:h-[280px] md:h-[420px] w-full rounded-[1.5rem] object-cover transition duration-700 hover:scale-105"
               />
 
               <div
-                className={`absolute inset-x-6 bottom-6 rounded-2xl border p-5 shadow-lg ${
+                className={`absolute inset-x-6 bottom-6 rounded-2xl border p-3 sm:p-5 shadow-lg ${
                   darkMode
                     ? "border-gray-700 bg-gray-900/85 text-white"
                     : "border-blue-100 bg-white/85 text-slate-800"
                 }`}
               >
-                <p className="text-sm uppercase tracking-[0.2em] text-indigo-500">
+                <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-indigo-500">
                   Platform Insight
                 </p>
-                <p className="mt-2 text-lg font-semibold">
+                <p className="mt-1 sm:mt-2 text-sm sm:text-lg font-semibold">
                   Reflect. Understand. Feel better.
                 </p>
               </div>
@@ -581,7 +577,7 @@ export default function Home() {
                   }`}>
                     {index + 1}
                   </span>
-                  <span className={`text-lg font-semibold leading-snug md:text-2xl ${headingText}`}>
+                  <span className={`text-lg font-semibold leading-snug md:text-2xl break-words max-w-[calc(100%-3rem)] ${headingText}`}>
                     {item.question}
                   </span>
                 </div>
@@ -620,7 +616,7 @@ export default function Home() {
           <img
             src={picbenifits}
             alt="Benefits of Mannlytics"
-            className="h-[300px] md:h-[510px] w-full rounded-[1.5rem] object-cover transition duration-700 hover:scale-105"
+            className="h-[220px] sm:h-[300px] md:h-[510px] w-full rounded-[1.5rem] object-cover transition duration-700 hover:scale-105"
           />
         </div>
 
@@ -705,7 +701,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="flex flex-col items-center text-center">
+          <div className="flex flex-col items-start text-left md:items-center md:text-center">
             <h4 className={`text-lg font-semibold ${headingText}`}>Quick Links</h4>
             <div className="mt-5 flex flex-col gap-3 items-center">
               {navLinks.map((link) => (
@@ -728,7 +724,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex flex-col items-center text-center">
+          <div className="flex flex-col items-start text-left md:items-center md:text-center">
             <h4 className={`text-lg font-semibold ${headingText}`}>Contact</h4>
             <div className={`mt-5 space-y-3 text-center ${mutedText}`}>
               <p>

@@ -1155,7 +1155,7 @@ export default function MentalHealthLibrary() {
                 transition={{ duration: 0.5 }}
                 className="mb-8"
               >
-                <div className="mb-5 flex items-center justify-between gap-4">
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <h2 className={`text-2xl font-black ${heading}`}>Quick Mental Health Tips</h2>
                     <p className={`mt-1 text-sm ${muted}`}>Small daily actions that support emotional balance.</p>
@@ -1170,7 +1170,7 @@ export default function MentalHealthLibrary() {
                   </button>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {TIPS.map((tip, index) => (
                     <motion.div
                       key={index}
@@ -1624,7 +1624,7 @@ export default function MentalHealthLibrary() {
             exit={{ opacity: 0, y: 18 }}
             transition={{ duration: 0.2 }}
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="fixed bottom-6 right-6 z-50 inline-flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition hover:bg-indigo-700"
+            className="fixed bottom-16 sm:bottom-6 right-6 z-50 inline-flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition hover:bg-indigo-700"
           >
             <FaArrowUp />
           </motion.button>
