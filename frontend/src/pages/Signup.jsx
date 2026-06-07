@@ -102,7 +102,7 @@ function Signup() {
 
   useEffect(() => {
     getRedirectResult(auth).then(async (result) => {
-      if (!result) return;
+      if (!result || !result.user) return;
       const user = result.user;
       try {
         const res = await api.post("/auth/google", {
@@ -116,14 +116,13 @@ function Signup() {
         sessionStorage.setItem("currentUserName", res.data.user.name);
         navigate("/dashboard");
       } catch (error) {
+        console.error("Google redirect result error:", error);
         setFormError(error?.response?.data?.message || "Google signup failed. Please try again.");
       }
     }).catch((error) => {
-      if (error.code !== "auth/no-current-user") {
-        setFormError("Google signup failed. Please try again.");
-      }
+      console.error("getRedirectResult error:", error);
     });
-  }, []);
+  }, [navigate]);
 
   const handleGoogleSignup = () => {
     setFormError("");

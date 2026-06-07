@@ -75,7 +75,7 @@ function Login() {
 
   useEffect(() => {
     getRedirectResult(auth).then(async (result) => {
-      if (!result) return;
+      if (!result || !result.user) return;
       const user = result.user;
       try {
         const res = await api.post("/auth/google", {
@@ -90,16 +90,15 @@ function Login() {
         if (res.data.user.photo) {
           localStorage.setItem(`profilePic_${res.data.user.email}`, res.data.user.photo);
         }
-        navigate(redirectTo);
+        navigate("/dashboard");
       } catch (error) {
+        console.error("Google redirect result error:", error);
         setFormError(error?.response?.data?.message || "Google login failed. Please try again.");
       }
     }).catch((error) => {
-      if (error.code !== "auth/no-current-user") {
-        setFormError("Google login failed. Please try again.");
-      }
+      console.error("getRedirectResult error:", error);
     });
-  }, []);
+  }, [navigate]);
 
   const handleGoogleLogin = () => {
     setFormError("");
