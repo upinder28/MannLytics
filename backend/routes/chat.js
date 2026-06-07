@@ -5,7 +5,7 @@ const Chat = require("../models/Chat"); // ✅ IMPORTANT
 
 const client = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1"
+  baseURL: "https://api.groq.com/openai/v1"
 });
 
 
@@ -24,7 +24,7 @@ router.post("/chat", async (req, res) => {
     const isNewChat = !chatId;
     if (isNewChat) {
       const titleCompletion = await client.chat.completions.create({
-        model: "openrouter/auto",
+        model: "llama-3.3-70b-versatile",
         max_tokens: 10,
         messages: [
           { role: "system", content: "You are a chat title generator. Generate a short, meaningful 3-5 word title that captures the emotional topic of the user's message. Examples: 'Feeling Anxious About Work', 'Struggling With Sleep', 'Dealing With Loneliness', 'Stress About Exams'. Return ONLY the title, nothing else. No quotes, no punctuation at end." },
@@ -53,7 +53,7 @@ router.post("/chat", async (req, res) => {
     res.write(`data: ${JSON.stringify({ type: "meta", chatId: chat._id, chatTitle })}\n\n`);
 
     const stream = await client.chat.completions.create({
-      model: "openrouter/auto",
+      model: "llama-3.3-70b-versatile",
       stream: true,
       max_tokens: 300,
       messages: [
