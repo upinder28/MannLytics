@@ -166,7 +166,7 @@ function Dashboard() {
     setIsAnalyzing(true);
     try {
       const data = await analyzeJournal(journal, currentUserEmail);
-      const analysis = data.analysis || {};
+      const analysis = data.analysis || data;
       const emotionKey = (analysis.emotion || "neutral").toLowerCase();
       const meta = EMOTION_MAP[emotionKey] || { emoji: "😐", score: 5 };
       const normalizedResult = {
