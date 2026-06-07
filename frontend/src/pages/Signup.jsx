@@ -107,9 +107,9 @@ function Signup() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       const res = await api.post("/auth/google", {
-        name: user.displayName,
-        email: user.email.toLowerCase(),
-        photo: user.photoURL,
+        name: user.displayName || "User",
+        email: (user.email || "").toLowerCase(),
+        photo: user.photoURL || "",
         uid: user.uid,
       });
       sessionStorage.setItem("token", res.data.token);
