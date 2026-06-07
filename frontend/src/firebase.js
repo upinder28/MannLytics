@@ -18,6 +18,8 @@ const app = initializeApp(firebaseConfig);
 // Auth & Provider
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+provider.addScope("email");
+provider.addScope("profile");
 provider.setCustomParameters({ prompt: "select_account" });
 
 export { auth, provider };
