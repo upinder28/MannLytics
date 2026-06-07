@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { signInWithPopup, createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithRedirect, getRedirectResult, createUserWithEmailAndPassword } from "firebase/auth";
 
 import authSideImg from "../assets/signup-side.jpeg";
 import pic from "../assets/logo pic.png";
@@ -100,27 +100,34 @@ function Signup() {
     }
   };
 
-  const handleGoogleSignup = async () => {
-    try {
-      setIsGoogleLoading(true);
-      setFormError("");
-      const result = await signInWithPopup(auth, provider);
+  useEffect(() => {
+    getRedirectResult(auth).then(async (result) => {
+      if (!result) return;
       const user = result.user;
-      const res = await api.post("/auth/google", {
-        name: user.displayName,
-        email: user.email.toLowerCase(),
-        photo: user.photoURL,
-        uid: user.uid,
-      });
-      sessionStorage.setItem("token", res.data.token);
-      sessionStorage.setItem("currentUser", res.data.user.email);
-      sessionStorage.setItem("currentUserName", res.data.user.name);
-      navigate("/dashboard");
-    } catch (error) {
-      setFormError(error?.response?.data?.message || "Google signup failed. Please try again.");
-    } finally {
-      setIsGoogleLoading(false);
-    }
+      try {
+        const res = await api.post("/auth/google", {
+          name: user.displayName,
+          email: user.email.toLowerCase(),
+          photo: user.photoURL,
+          uid: user.uid,
+        });
+        sessionStorage.setItem("token", res.data.token);
+        sessionStorage.setItem("currentUser", res.data.user.email);
+        sessionStorage.setItem("currentUserName", res.data.user.name);
+        navigate("/dashboard");
+      } catch (error) {
+        setFormError(error?.response?.data?.message || "Google signup failed. Please try again.");
+      }
+    }).catch((error) => {
+      if (error.code !== "auth/no-current-user") {
+        setFormError("Google signup failed. Please try again.");
+      }
+    });
+  }, []);
+
+  const handleGoogleSignup = () => {
+    setFormError("");
+    signInWithRedirect(auth, provider);
   };
 
   return (

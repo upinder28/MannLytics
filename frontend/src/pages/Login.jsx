@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { signInWithPopup, sendPasswordResetEmail } from "firebase/auth";
+import { signInWithRedirect, getRedirectResult, sendPasswordResetEmail } from "firebase/auth";
 
 import authSideImg from "../assets/signup-side.jpeg";
 import pic from "../assets/logo pic.png";
@@ -73,34 +73,37 @@ function Login() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setFormError("");
-    setResetMessage("");
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("currentUser");
-    sessionStorage.removeItem("currentUserName");
-    try {
-      setIsGoogleLoading(true);
-      const result = await signInWithPopup(auth, provider);
+  useEffect(() => {
+    getRedirectResult(auth).then(async (result) => {
+      if (!result) return;
       const user = result.user;
-      const res = await api.post("/auth/google", {
-        name: user.displayName,
-        email: user.email.toLowerCase(),
-        photo: user.photoURL,
-        uid: user.uid,
-      });
-      sessionStorage.setItem("token", res.data.token);
-      sessionStorage.setItem("currentUser", res.data.user.email);
-      sessionStorage.setItem("currentUserName", res.data.user.name);
-      if (res.data.user.photo) {
-        localStorage.setItem(`profilePic_${res.data.user.email}`, res.data.user.photo);
+      try {
+        const res = await api.post("/auth/google", {
+          name: user.displayName,
+          email: user.email.toLowerCase(),
+          photo: user.photoURL,
+          uid: user.uid,
+        });
+        sessionStorage.setItem("token", res.data.token);
+        sessionStorage.setItem("currentUser", res.data.user.email);
+        sessionStorage.setItem("currentUserName", res.data.user.name);
+        if (res.data.user.photo) {
+          localStorage.setItem(`profilePic_${res.data.user.email}`, res.data.user.photo);
+        }
+        navigate(redirectTo);
+      } catch (error) {
+        setFormError(error?.response?.data?.message || "Google login failed. Please try again.");
       }
-      navigate(redirectTo);
-    } catch (error) {
-      setFormError(error?.response?.data?.message || "Google login failed. Please try again.");
-    } finally {
-      setIsGoogleLoading(false);
-    }
+    }).catch((error) => {
+      if (error.code !== "auth/no-current-user") {
+        setFormError("Google login failed. Please try again.");
+      }
+    });
+  }, []);
+
+  const handleGoogleLogin = () => {
+    setFormError("");
+    signInWithRedirect(auth, provider);
   };
 
   const handleForgotPassword = async () => {
