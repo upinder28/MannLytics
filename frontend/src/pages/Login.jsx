@@ -79,6 +79,7 @@ function Login() {
       setIsGoogleLoading(true);
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      console.log("Firebase user:", user?.email, user?.displayName, user?.uid);
       const res = await api.post("/auth/google", {
         name: user.displayName || "User",
         email: (user.email || "").toLowerCase(),
