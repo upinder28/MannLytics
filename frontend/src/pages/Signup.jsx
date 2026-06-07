@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { signInWithRedirect, getRedirectResult, createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithPopup, createUserWithEmailAndPassword } from "firebase/auth";
 
 import authSideImg from "../assets/signup-side.jpeg";
 import pic from "../assets/logo pic.png";
@@ -100,33 +100,28 @@ function Signup() {
     }
   };
 
-  useEffect(() => {
-    getRedirectResult(auth).then(async (result) => {
-      if (!result || !result.user) return;
-      const user = result.user;
-      try {
-        const res = await api.post("/auth/google", {
-          name: user.displayName,
-          email: user.email.toLowerCase(),
-          photo: user.photoURL,
-          uid: user.uid,
-        });
-        sessionStorage.setItem("token", res.data.token);
-        sessionStorage.setItem("currentUser", res.data.user.email);
-        sessionStorage.setItem("currentUserName", res.data.user.name);
-        navigate("/dashboard");
-      } catch (error) {
-        console.error("Google redirect result error:", error);
-        setFormError(error?.response?.data?.message || "Google signup failed. Please try again.");
-      }
-    }).catch((error) => {
-      console.error("getRedirectResult error:", error);
-    });
-  }, [navigate]);
-
-  const handleGoogleSignup = () => {
+  const handleGoogleSignup = async () => {
     setFormError("");
-    signInWithRedirect(auth, provider);
+    try {
+      setIsGoogleLoading(true);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const res = await api.post("/auth/google", {
+        name: user.displayName,
+        email: user.email.toLowerCase(),
+        photo: user.photoURL,
+        uid: user.uid,
+      });
+      sessionStorage.setItem("token", res.data.token);
+      sessionStorage.setItem("currentUser", res.data.user.email);
+      sessionStorage.setItem("currentUserName", res.data.user.name);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Google signup error:", error?.code, error?.message);
+      setFormError(error?.response?.data?.message || error?.message || "Google signup failed. Please try again.");
+    } finally {
+      setIsGoogleLoading(false);
+    }
   };
 
   return (

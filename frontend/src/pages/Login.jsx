@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { signInWithRedirect, getRedirectResult, sendPasswordResetEmail } from "firebase/auth";
+import { signInWithPopup, sendPasswordResetEmail } from "firebase/auth";
 
 import authSideImg from "../assets/signup-side.jpeg";
 import pic from "../assets/logo pic.png";
@@ -73,36 +73,31 @@ function Login() {
     }
   };
 
-  useEffect(() => {
-    getRedirectResult(auth).then(async (result) => {
-      if (!result || !result.user) return;
-      const user = result.user;
-      try {
-        const res = await api.post("/auth/google", {
-          name: user.displayName,
-          email: user.email.toLowerCase(),
-          photo: user.photoURL,
-          uid: user.uid,
-        });
-        sessionStorage.setItem("token", res.data.token);
-        sessionStorage.setItem("currentUser", res.data.user.email);
-        sessionStorage.setItem("currentUserName", res.data.user.name);
-        if (res.data.user.photo) {
-          localStorage.setItem(`profilePic_${res.data.user.email}`, res.data.user.photo);
-        }
-        navigate("/dashboard");
-      } catch (error) {
-        console.error("Google redirect result error:", error);
-        setFormError(error?.response?.data?.message || "Google login failed. Please try again.");
-      }
-    }).catch((error) => {
-      console.error("getRedirectResult error:", error);
-    });
-  }, [navigate]);
-
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setFormError("");
-    signInWithRedirect(auth, provider);
+    try {
+      setIsGoogleLoading(true);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const res = await api.post("/auth/google", {
+        name: user.displayName,
+        email: user.email.toLowerCase(),
+        photo: user.photoURL,
+        uid: user.uid,
+      });
+      sessionStorage.setItem("token", res.data.token);
+      sessionStorage.setItem("currentUser", res.data.user.email);
+      sessionStorage.setItem("currentUserName", res.data.user.name);
+      if (res.data.user.photo) {
+        localStorage.setItem(`profilePic_${res.data.user.email}`, res.data.user.photo);
+      }
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Google login error:", error?.code, error?.message);
+      setFormError(error?.response?.data?.message || error?.message || "Google login failed. Please try again.");
+    } finally {
+      setIsGoogleLoading(false);
+    }
   };
 
   const handleForgotPassword = async () => {
