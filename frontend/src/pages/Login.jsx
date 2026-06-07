@@ -79,10 +79,12 @@ function Login() {
       setIsGoogleLoading(true);
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      console.log("Firebase user:", user?.email, user?.displayName, user?.uid);
+      const credential = result._tokenResponse;
+      const email = user.email || credential?.email || user.providerData?.[0]?.email || "";
+      console.log("Firebase user:", email, user?.displayName, user?.uid);
       const res = await api.post("/auth/google", {
         name: user.displayName || "User",
-        email: (user.email || "").toLowerCase(),
+        email: email.toLowerCase(),
         photo: user.photoURL || "",
         uid: user.uid,
       });
