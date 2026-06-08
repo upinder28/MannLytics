@@ -17,6 +17,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendWelcomeEmail = (to, name) => {
+  console.log(`Sending welcome email to: ${to}`);
   transporter.sendMail({
     from: `"Mannlytics 💜" <${process.env.EMAIL_USER}>`,
     to,
@@ -32,7 +33,8 @@ const sendWelcomeEmail = (to, name) => {
         </div>
       </div>
     `
-  }).catch(err => console.error("Email error:", err));
+  }).then(() => console.log(`✅ Welcome email sent to: ${to}`))
+    .catch(err => console.error("Email error:", err));
 };
 
 // 🔹 SIGNUP
