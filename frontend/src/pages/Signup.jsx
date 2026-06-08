@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { signInWithPopup, createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithPopup } from "firebase/auth";
 
 import authSideImg from "../assets/signup-side.jpeg";
 import pic from "../assets/logo pic.png";
@@ -82,17 +82,11 @@ function Signup() {
     if (password !== confirmPassword) { setConfirmError("Passwords do not match"); setFormError("Please confirm your password correctly"); return; }
     try {
       setIsSubmitting(true);
-      const userCred = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
-      try {
-        const res = await api.post("/auth/signup", { name: trimmedName, email: normalizedEmail, password });
-        sessionStorage.setItem("token", res.data.token);
-        sessionStorage.setItem("currentUser", normalizedEmail);
-        sessionStorage.setItem("currentUserName", trimmedName);
-        navigate("/dashboard");
-      } catch (backendError) {
-        await userCred.user.delete();
-        throw backendError;
-      }
+      const res = await api.post("/auth/signup", { name: trimmedName, email: normalizedEmail, password });
+      sessionStorage.setItem("token", res.data.token);
+      sessionStorage.setItem("currentUser", normalizedEmail);
+      sessionStorage.setItem("currentUserName", trimmedName);
+      navigate("/dashboard");
     } catch (error) {
       setFormError(error?.response?.data?.message || error?.message || "Unable to create your account. Please try again.");
     } finally {
